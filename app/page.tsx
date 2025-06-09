@@ -3,8 +3,12 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 
-// Set to 1 minute for testing (in milliseconds)
-const FETCH_INTERVAL = 1 * 60 * 1000;
+// Available intervals in minutes
+const INTERVAL_OPTIONS = [
+  { value: 60, label: '1 minute' },
+  { value: 1800, label: '30 minutes' },
+  { value: 3600, label: '60 minutes' },
+];
 
 interface ApiMetadata {
   fetchTimestamp: string;
@@ -16,9 +20,10 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFetchTime, setLastFetchTime] = useState<string>('Never');
-  const [nextFetchIn, setNextFetchIn] = useState<number>(FETCH_INTERVAL / 1000);
+  const [nextFetchIn, setNextFetchIn] = useState<number>(60);
   const [metadata, setMetadata] = useState<ApiMetadata | null>(null);
   const [isRunning, setIsRunning] = useState(false);
+  const [selectedInterval, setSelectedInterval] = useState<number>(60);
 
   const fetchJobDivaData = async () => {
     try {
@@ -42,7 +47,7 @@ export default function Home() {
       setMetadata(data.metadata);
       
       // Reset countdown after successful fetch
-      setNextFetchIn(FETCH_INTERVAL / 1000);
+      setNextFetchIn(selectedInterval);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -59,13 +64,13 @@ export default function Home() {
       fetchJobDivaData();
 
       // Set up timer to fetch every interval
-      fetchIntervalId = setInterval(fetchJobDivaData, FETCH_INTERVAL);
+      fetchIntervalId = setInterval(fetchJobDivaData, selectedInterval * 1000);
 
       // Set up countdown timer that updates every second
       countdownIntervalId = setInterval(() => {
         setNextFetchIn(prev => {
           if (prev <= 1) {
-            return FETCH_INTERVAL / 1000;
+            return selectedInterval;
           }
           return prev - 1;
         });
@@ -77,7 +82,7 @@ export default function Home() {
       if (fetchIntervalId) clearInterval(fetchIntervalId);
       if (countdownIntervalId) clearInterval(countdownIntervalId);
     };
-  }, [isRunning]); // Effect runs when isRunning changes
+  }, [isRunning, selectedInterval]); // Effect runs when isRunning or selectedInterval changes
 
   // Format the countdown time
   const formatCountdown = (seconds: number): string => {
@@ -88,16 +93,25 @@ export default function Home() {
 
   const handleStart = () => {
     setIsRunning(true);
+    setNextFetchIn(selectedInterval);
   };
 
   const handleStop = () => {
     setIsRunning(false);
-    setNextFetchIn(FETCH_INTERVAL / 1000);
+    setNextFetchIn(selectedInterval);
+  };
+
+  const handleIntervalChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const newInterval = parseInt(event.target.value);
+    setSelectedInterval(newInterval);
+    if (isRunning) {
+      setNextFetchIn(newInterval);
+    }
   };
 
   return (
     <main className={styles.main}>
-      <h1 className={styles.title}>JobDiva API Tester</h1>
+      <h1 className={styles.title}>JobDiva L2 Selected</h1>
       
       <div className={styles.controls}>
         <div className={styles.buttonGroup}>
@@ -122,6 +136,18 @@ export default function Home() {
           >
             {isLoading ? 'Fetching...' : 'Fetch Now'}
           </button>
+          <select 
+            value={selectedInterval}
+            onChange={handleIntervalChange}
+            disabled={isRunning}
+            className={styles.intervalSelect}
+          >
+            {INTERVAL_OPTIONS.map(option => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
         </div>
         <div className={styles.status}>
           <div className={styles.lastFetch}>
