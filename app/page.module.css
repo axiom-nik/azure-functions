@@ -5,6 +5,8 @@
   padding: 2rem;
   min-height: 100vh;
   background-color: #f5f5f5;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .title {
@@ -12,23 +14,29 @@
   margin-bottom: 2rem;
   color: #333;
   font-weight: 600;
+  text-align: center;
 }
 
 .controls {
   margin-bottom: 2rem;
+  padding: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.buttonGroup {
   display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .button {
   padding: 0.5rem 1rem;
-  font-size: 1rem;
+  border: none;
   border-radius: 4px;
-  border: 1px solid #ccc;
-  background-color: #fff;
   cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
 }
 
 .button:disabled {
@@ -36,18 +44,51 @@
   cursor: not-allowed;
 }
 
+.startButton {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.startButton:hover:not(:disabled) {
+  background-color: #45a049;
+}
+
+.stopButton {
+  background-color: #f44336;
+  color: white;
+}
+
+.stopButton:hover:not(:disabled) {
+  background-color: #da190b;
+}
+
+.button:not(.startButton):not(.stopButton) {
+  background-color: #2196F3;
+  color: white;
+}
+
+.button:not(.startButton):not(.stopButton):hover:not(:disabled) {
+  background-color: #1976D2;
+}
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .error {
+  color: #f44336;
   padding: 1rem;
   margin: 1rem 0;
   background-color: #ffebee;
-  color: #c62828;
   border-radius: 4px;
-  border: 1px solid #ef9a9a;
 }
 
 .responseContainer {
   width: 100%;
   max-width: 800px;
+  margin-top: 2rem;
 }
 
 .response {
@@ -73,11 +114,7 @@
 
 .metadata {
   margin-top: 1rem;
-  padding: 1rem;
-  background-color: #e3f2fd;
+  padding: 0.5rem;
+  background-color: #f5f5f5;
   border-radius: 4px;
-  border: 1px solid #90caf9;
-  font-size: 0.9rem;
-  color: #1976d2;
-  text-align: center;
 } 

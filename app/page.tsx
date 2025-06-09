@@ -18,6 +18,7 @@ export default function Home() {
   const [lastFetchTime, setLastFetchTime] = useState<string>('Never');
   const [nextFetchIn, setNextFetchIn] = useState<number>(FETCH_INTERVAL / 1000);
   const [metadata, setMetadata] = useState<ApiMetadata | null>(null);
+  const [isRunning, setIsRunning] = useState(false);
 
   const fetchJobDivaData = async () => {
     try {
@@ -50,28 +51,33 @@ export default function Home() {
   };
 
   useEffect(() => {
-    // Fetch data immediately when component mounts
-    fetchJobDivaData();
+    let fetchIntervalId: NodeJS.Timeout;
+    let countdownIntervalId: NodeJS.Timeout;
 
-    // Set up timer to fetch every 2 minutes (for testing)
-    const fetchIntervalId = setInterval(fetchJobDivaData, FETCH_INTERVAL);
+    if (isRunning) {
+      // Fetch data immediately when starting
+      fetchJobDivaData();
 
-    // Set up countdown timer that updates every second
-    const countdownIntervalId = setInterval(() => {
-      setNextFetchIn(prev => {
-        if (prev <= 1) {
-          return FETCH_INTERVAL / 1000;
-        }
-        return prev - 1;
-      });
-    }, 1000);
+      // Set up timer to fetch every interval
+      fetchIntervalId = setInterval(fetchJobDivaData, FETCH_INTERVAL);
 
-    // Cleanup intervals on component unmount
+      // Set up countdown timer that updates every second
+      countdownIntervalId = setInterval(() => {
+        setNextFetchIn(prev => {
+          if (prev <= 1) {
+            return FETCH_INTERVAL / 1000;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+
+    // Cleanup intervals on component unmount or when stopping
     return () => {
-      clearInterval(fetchIntervalId);
-      clearInterval(countdownIntervalId);
+      if (fetchIntervalId) clearInterval(fetchIntervalId);
+      if (countdownIntervalId) clearInterval(countdownIntervalId);
     };
-  }, []); // Empty dependency array means this effect runs once on mount
+  }, [isRunning]); // Effect runs when isRunning changes
 
   // Format the countdown time
   const formatCountdown = (seconds: number): string => {
@@ -80,30 +86,59 @@ export default function Home() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
   };
 
+  const handleStart = () => {
+    setIsRunning(true);
+  };
+
+  const handleStop = () => {
+    setIsRunning(false);
+    setNextFetchIn(FETCH_INTERVAL / 1000);
+  };
+
   return (
     <main className={styles.main}>
       <h1 className={styles.title}>JobDiva API Tester</h1>
       
       <div className={styles.controls}>
-        <button 
-          onClick={fetchJobDivaData}
-          disabled={isLoading}
-          className={styles.button}
-        >
-          {isLoading ? 'Fetching...' : 'Fetch JobDiva Data'}
-        </button>
-        <div className={styles.lastFetch}>
-          Last fetched: {lastFetchTime}
+        <div className={styles.buttonGroup}>
+          <button 
+            onClick={handleStart}
+            disabled={isRunning || isLoading}
+            className={`${styles.button} ${styles.startButton}`}
+          >
+            Start
+          </button>
+          <button 
+            onClick={handleStop}
+            disabled={!isRunning}
+            className={`${styles.button} ${styles.stopButton}`}
+          >
+            Stop
+          </button>
+          <button 
+            onClick={fetchJobDivaData}
+            disabled={isLoading}
+            className={styles.button}
+          >
+            {isLoading ? 'Fetching...' : 'Fetch Now'}
+          </button>
         </div>
-        <div className={styles.nextFetch}>
-          Next fetch in: {formatCountdown(nextFetchIn)}
-        </div>
-        {metadata && (
-          <div className={styles.metadata}>
-            <div>Region: {metadata.region}</div>
-            <div>Server timestamp: {new Date(metadata.fetchTimestamp).toLocaleString()}</div>
+        <div className={styles.status}>
+          <div className={styles.lastFetch}>
+            Last fetched: {lastFetchTime}
           </div>
-        )}
+          {isRunning && (
+            <div className={styles.nextFetch}>
+              Next fetch in: {formatCountdown(nextFetchIn)}
+            </div>
+          )}
+          {metadata && (
+            <div className={styles.metadata}>
+              <div>Region: {metadata.region}</div>
+              <div>Server timestamp: {new Date(metadata.fetchTimestamp).toLocaleString()}</div>
+            </div>
+          )}
+        </div>
       </div>
 
       {error && (

@@ -53,12 +53,9 @@ def generate_excel(data):
         existing_fields = [field for field in REQUIRED_FIELDS if field in filtered_df.columns]
         filtered_df = filtered_df[existing_fields]
         
-        # Create Excel_Tables directory if it doesn't exist
-        os.makedirs('Excel_Tables', exist_ok=True)
-        
-        # Use fixed filename
+        # Use fixed filename in tmp directory
         filename = "DemoDatabase2.xlsx"
-        output_path = os.path.join('Excel_Tables', filename)
+        output_path = os.path.join('tmp', filename)
         
         # Save to Excel
         filtered_df.to_excel(output_path, index=False)
