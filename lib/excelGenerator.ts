@@ -67,7 +67,7 @@ export async function generateExcel(data: any): Promise<ExcelResult> {
     XLSX.utils.book_append_sheet(workbook, worksheet, 'L2 Selected Candidates');
 
     // Generate Excel file in memory
-    const filename = 'DemoDatabase2.xlsx';
+    const filename = 'l2Selected.xlsx';
     const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
     
     console.log('Excel file generated successfully in memory');
