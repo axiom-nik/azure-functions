@@ -20,7 +20,7 @@ async function generateExcel(data: any): Promise<ExcelResult> {
     // Create a temporary JSON file with the data
     const tempFile = 'temp_data.json';
     const scriptPath = path.resolve(process.cwd(), 'lib', 'excel_generator.py');
-    const pythonPath = 'C:\\Users\\nikhi\\AppData\\Local\\Programs\\Python\\Python311\\python.exe';
+    const pythonPath = 'python'; // Use system Python command
     
     try {
       console.log('Writing data to temp file:', tempFile);
