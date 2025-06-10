@@ -10,6 +10,8 @@ interface ExcelResult {
   record_count?: number;
   total_records?: number;
   filtered_records?: number;
+  fields_included?: string[];
+  missing_fields?: string[];
   error?: string;
 }
 
