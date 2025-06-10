@@ -69,21 +69,87 @@ export async function upload_file_to_sharepoint(
   filename: string
 ): Promise<boolean> {
   try {
-    // Use the full composite ID format without any colons
-    const uploadUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/drives/${DRIVE_ID}/root:/${SHAREPOINT_FOLDER}/${filename}`;
-    console.log('Uploading to URL:', uploadUrl);
+    console.log('🔍 Starting SharePoint upload process...');
+    console.log('📁 File details:', { filename, size: base64Data.length });
+
+    // Step 1: Verify site access
+    console.log('🔑 Step 1: Verifying site access...');
+    const siteUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}`;
+    console.log('   Site URL:', siteUrl);
+
+    const siteResponse = await fetch(siteUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!siteResponse.ok) {
+      const errorText = await siteResponse.text();
+      console.error('❌ Failed to access site:', errorText);
+      return false;
+    }
+    console.log('✅ Site access verified successfully');
+
+    // Step 2: Verify drive access
+    console.log('🔑 Step 2: Verifying drive access...');
+    const driveUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/drives/${DRIVE_ID}/root/children`;
+    console.log('   Drive URL:', driveUrl);
+
+    const driveResponse = await fetch(driveUrl, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Accept': 'application/json'
+      }
+    });
+
+    if (!driveResponse.ok) {
+      const errorText = await driveResponse.text();
+      console.error('❌ Failed to access drive:', errorText);
+      return false;
+    }
+    console.log('✅ Drive access verified successfully');
+
+    // Step 3: Try uploading to root as a test
+    console.log('🔑 Step 3: Testing upload to root...');
+    const testUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/drives/${DRIVE_ID}/root:/${filename}:/content`;
+    console.log('   Test URL:', testUrl);
 
     // Decode base64 data to binary
     const fileData = Buffer.from(base64Data, 'base64');
-    console.log('File size:', fileData.length, 'bytes');
+    console.log('   File size:', fileData.length, 'bytes');
 
-    // First, create the file metadata
-    const createFileUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/drives/${DRIVE_ID}/root:/${SHAREPOINT_FOLDER}/${filename}`;
-    const createResponse = await fetch(createFileUrl, {
+    const testResponse = await fetch(testUrl, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'Content-Length': fileData.length.toString(),
+        'Accept': 'application/json'
+      },
+      body: fileData
+    });
+
+    if (testResponse.ok) {
+      console.log('✅ Test upload successful');
+      return true;
+    }
+    console.log('⚠️ Test upload failed, trying full path...');
+
+    // Step 4: Try full path with encoded folder
+    console.log('🔑 Step 4: Attempting upload to full path...');
+    const encodedPath = encodeURIComponent(`${SHAREPOINT_FOLDER}/${filename}`);
+    const createUrl = `https://graph.microsoft.com/v1.0/sites/${SITE_ID}/drives/${DRIVE_ID}/root:/${encodedPath}`;
+    console.log('   Create URL:', createUrl);
+
+    const createResponse = await fetch(createUrl, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       },
       body: JSON.stringify({
         "@microsoft.graph.conflictBehavior": "replace"
@@ -91,18 +157,24 @@ export async function upload_file_to_sharepoint(
     });
 
     if (!createResponse.ok) {
-      console.error('Failed to create file:', await createResponse.text());
+      const errorText = await createResponse.text();
+      console.error('❌ Failed to create file:', errorText);
       return false;
     }
+    console.log('✅ File metadata created successfully');
 
-    // Then upload the content
-    const contentUrl = `${createFileUrl}:/content`;
-    const uploadResponse = await fetch(contentUrl, {
+    // Step 5: Upload content
+    console.log('🔑 Step 5: Uploading file content...');
+    const uploadUrl = `${createUrl}:/content`;
+    console.log('   Upload URL:', uploadUrl);
+
+    const uploadResponse = await fetch(uploadUrl, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'Content-Length': fileData.length.toString()
+        'Content-Length': fileData.length.toString(),
+        'Accept': 'application/json'
       },
       body: fileData
     });
@@ -111,26 +183,37 @@ export async function upload_file_to_sharepoint(
       console.log('✅ Upload successful');
       return true;
     } else {
-      console.error('❌ Upload failed:', uploadResponse.status);
       const errorText = await uploadResponse.text();
+      console.error('❌ Upload failed:', uploadResponse.status);
       console.error('Error details:', errorText);
       
       // Log the request details for debugging
       console.error('Request details:', {
-        url: contentUrl,
+        url: uploadUrl,
         method: 'PUT',
         headers: {
           'Authorization': 'Bearer [REDACTED]',
           'Content-Type': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'Content-Length': fileData.length.toString()
+          'Content-Length': fileData.length.toString(),
+          'Accept': 'application/json'
         },
         bodySize: fileData.length
       });
+
+      // Try to get more detailed error information
+      try {
+        const errorJson = JSON.parse(errorText);
+        if (errorJson.error?.innerError) {
+          console.error('Inner error details:', errorJson.error.innerError);
+        }
+      } catch (e) {
+        // Ignore JSON parse errors
+      }
       
       return false;
     }
   } catch (error) {
-    console.error('Error uploading to SharePoint:', error);
+    console.error('❌ Error in SharePoint upload process:', error);
     if (error instanceof Error) {
       console.error('Error details:', {
         message: error.message,
