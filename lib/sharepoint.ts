@@ -8,19 +8,6 @@ const DRIVE_ID = process.env.NEXT_PUBLIC_DRIVE_ID;
 const SHAREPOINT_FOLDER = process.env.NEXT_PUBLIC_SHAREPOINT_FOLDER;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
-// Validate environment variables
-if (!CLIENT_ID || !TENANT_ID || !SITE_ID || !DRIVE_ID || !SHAREPOINT_FOLDER || !CLIENT_SECRET) {
-  console.error('Missing SharePoint environment variables:', {
-    CLIENT_ID: !!CLIENT_ID,
-    TENANT_ID: !!TENANT_ID,
-    SITE_ID: !!SITE_ID,
-    DRIVE_ID: !!DRIVE_ID,
-    SHAREPOINT_FOLDER: !!SHAREPOINT_FOLDER,
-    CLIENT_SECRET: !!CLIENT_SECRET
-  });
-  throw new Error('Missing required SharePoint environment variables');
-}
-
 // Initialize MSAL client
 const msalConfig = {
   auth: {
@@ -32,8 +19,24 @@ const msalConfig = {
 
 const msalClient = new ConfidentialClientApplication(msalConfig);
 
+function validateEnvironmentVariables() {
+  if (!CLIENT_ID || !TENANT_ID || !SITE_ID || !DRIVE_ID || !SHAREPOINT_FOLDER || !CLIENT_SECRET) {
+    console.error('Missing SharePoint environment variables:', {
+      CLIENT_ID: !!CLIENT_ID,
+      TENANT_ID: !!TENANT_ID,
+      SITE_ID: !!SITE_ID,
+      DRIVE_ID: !!DRIVE_ID,
+      SHAREPOINT_FOLDER: !!SHAREPOINT_FOLDER,
+      CLIENT_SECRET: !!CLIENT_SECRET
+    });
+    throw new Error('Missing required SharePoint environment variables');
+  }
+}
+
 export async function get_access_token(): Promise<string> {
   try {
+    validateEnvironmentVariables();
+    
     console.log('Getting access token with config:', {
       clientId: CLIENT_ID,
       tenantId: TENANT_ID,
@@ -69,6 +72,8 @@ export async function upload_file_to_sharepoint(
   filename: string
 ): Promise<boolean> {
   try {
+    validateEnvironmentVariables();
+    
     console.log('🔍 Starting SharePoint upload process...');
     console.log('📁 File details:', { filename, size: base64Data.length });
 
