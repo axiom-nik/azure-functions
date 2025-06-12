@@ -1,6 +1,7 @@
 import os
 import requests
 import msal
+import base64
 from dotenv import load_dotenv
 
 # === LOAD ENV VARIABLES ===
@@ -12,8 +13,6 @@ TENANT_ID = os.getenv("TENANT_ID")
 SITE_ID = os.getenv("SITE_ID")
 DRIVE_ID = os.getenv("DRIVE_ID")
 SHAREPOINT_FOLDER = os.getenv("SHAREPOINT_FOLDER")
-EXCEL_FILE_PATH = os.getenv("EXCEL_FILE_PATH")
-EXCEL_FILE_NAME = os.path.basename(EXCEL_FILE_PATH)
 
 # === STEP 1: Authenticate via MSAL ===
 def get_access_token():
@@ -28,7 +27,7 @@ def get_access_token():
         raise Exception(f"Authentication failed: {result.get('error_description')}")
 
 # === STEP 2: Upload file ===
-def upload_file_to_sharepoint(access_token):
+def upload_file_to_sharepoint(access_token, base64_data, filename):
     headers = {
         "Authorization": f"Bearer {access_token}",
         "Content-Type": "application/octet-stream"
@@ -36,19 +35,25 @@ def upload_file_to_sharepoint(access_token):
 
     upload_url = (
         f"https://graph.microsoft.com/v1.0/sites/{SITE_ID}/drives/{DRIVE_ID}/"
-        f"root:/{SHAREPOINT_FOLDER}/{EXCEL_FILE_NAME}:/content"
+        f"root:/{SHAREPOINT_FOLDER}/{filename}:/content"
     )
 
-    with open(EXCEL_FILE_PATH, "rb") as f:
-        response = requests.put(upload_url, headers=headers, data=f)
+    # Decode base64 data to binary
+    file_data = base64.b64decode(base64_data)
+    
+    response = requests.put(upload_url, headers=headers, data=file_data)
 
     if response.status_code in (200, 201):
         print(f"✅ Upload successful: {response.json().get('webUrl')}")
+        return True
     else:
         print(f"❌ Upload failed: {response.status_code}")
         print(response.text)
+        return False
 
 # === MAIN EXECUTION ===
 if __name__ == "__main__":
+    # This is just for testing - in production, this will be called with data from the API
     token = get_access_token()
-    upload_file_to_sharepoint(token)
+    # Example usage:
+    # upload_file_to_sharepoint(token, base64_data, "DemoDatabase2.xlsx")

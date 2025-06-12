@@ -15,6 +15,13 @@ interface ApiMetadata {
   region: string;
 }
 
+interface ExcelInfo {
+  filename: string;
+  total_records: number;
+  filtered_records: number;
+  buffer: string;
+}
+
 export default function Home() {
   const [apiResponse, setApiResponse] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
@@ -24,11 +31,15 @@ export default function Home() {
   const [metadata, setMetadata] = useState<ApiMetadata | null>(null);
   const [isRunning, setIsRunning] = useState(false);
   const [selectedInterval, setSelectedInterval] = useState<number>(60);
+  const [excelInfo, setExcelInfo] = useState<ExcelInfo | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'success' | 'failed'>('idle');
 
   const fetchJobDivaData = async () => {
     try {
       setIsLoading(true);
       setError(null);
+      setUploadStatus('idle');
       
       const response = await fetch('/api/jobdiva', {
         method: 'POST',
@@ -45,6 +56,7 @@ export default function Home() {
       setApiResponse(JSON.stringify(data.data, null, 2));
       setLastFetchTime(headerTimestamp || new Date().toLocaleString());
       setMetadata(data.metadata);
+      setExcelInfo(data.excel);
       
       // Reset countdown after successful fetch
       setNextFetchIn(selectedInterval);
@@ -52,6 +64,43 @@ export default function Home() {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleUploadToSharePoint = async () => {
+    if (!excelInfo?.buffer) {
+      setError('No Excel file available to upload');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setError(null);
+      setUploadStatus('idle');
+
+      const response = await fetch('/api/sharepoint/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          base64Data: excelInfo.buffer,
+          filename: excelInfo.filename,
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload to SharePoint');
+      }
+
+      setUploadStatus('success');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload to SharePoint');
+      setUploadStatus('failed');
+    } finally {
+      setIsUploading(false);
     }
   };
 
@@ -148,6 +197,13 @@ export default function Home() {
               </option>
             ))}
           </select>
+          <button
+            onClick={handleUploadToSharePoint}
+            disabled={!excelInfo?.buffer || isUploading}
+            className={`${styles.button} ${styles.uploadButton}`}
+          >
+            {isUploading ? 'Uploading...' : 'Upload to SharePoint'}
+          </button>
         </div>
         <div className={styles.status}>
           <div className={styles.lastFetch}>
@@ -162,6 +218,18 @@ export default function Home() {
             <div className={styles.metadata}>
               <div>Region: {metadata.region}</div>
               <div>Server timestamp: {new Date(metadata.fetchTimestamp).toLocaleString()}</div>
+            </div>
+          )}
+          {excelInfo && (
+            <div className={styles.excelInfo}>
+              <div>Excel File: {excelInfo.filename}</div>
+              <div>Total Records: {excelInfo.total_records}</div>
+              <div>Filtered Records: {excelInfo.filtered_records}</div>
+              {uploadStatus !== 'idle' && (
+                <div className={`${styles.uploadStatus} ${styles[uploadStatus]}`}>
+                  SharePoint Upload: {uploadStatus}
+                </div>
+              )}
             </div>
           )}
         </div>

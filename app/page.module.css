@@ -22,12 +22,15 @@
   padding: 1rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+  background-color: white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .buttonGroup {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
+  flex-wrap: wrap;
 }
 
 .button {
@@ -62,12 +65,21 @@
   background-color: #da190b;
 }
 
-.button:not(.startButton):not(.stopButton) {
+.uploadButton {
+  background-color: #9c27b0;
+  color: white;
+}
+
+.uploadButton:hover:not(:disabled) {
+  background-color: #7b1fa2;
+}
+
+.button:not(.startButton):not(.stopButton):not(.uploadButton) {
   background-color: #2196F3;
   color: white;
 }
 
-.button:not(.startButton):not(.stopButton):hover:not(:disabled) {
+.button:not(.startButton):not(.stopButton):not(.uploadButton):hover:not(:disabled) {
   background-color: #1976D2;
 }
 
@@ -75,6 +87,9 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 4px;
 }
 
 .error {
@@ -83,6 +98,7 @@
   margin: 1rem 0;
   background-color: #ffebee;
   border-radius: 4px;
+  border: 1px solid #ffcdd2;
 }
 
 .responseContainer {
@@ -133,4 +149,31 @@
   opacity: 0.5;
   cursor: not-allowed;
   background-color: #f5f5f5;
+}
+
+.excelInfo {
+  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  border: 1px solid #bbdefb;
+}
+
+.uploadStatus {
+  margin-top: 0.5rem;
+  padding: 0.5rem;
+  border-radius: 4px;
+  font-weight: bold;
+}
+
+.uploadStatus.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.uploadStatus.failed {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
 } 
