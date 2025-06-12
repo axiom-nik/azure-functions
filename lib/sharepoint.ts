@@ -8,17 +8,6 @@ const DRIVE_ID = process.env.NEXT_PUBLIC_DRIVE_ID;
 const SHAREPOINT_FOLDER = process.env.NEXT_PUBLIC_SHAREPOINT_FOLDER;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
-// Initialize MSAL client
-const msalConfig = {
-  auth: {
-    clientId: CLIENT_ID,
-    authority: `https://login.microsoftonline.com/${TENANT_ID}`,
-    clientSecret: CLIENT_SECRET,
-  }
-};
-
-const msalClient = new ConfidentialClientApplication(msalConfig);
-
 function validateEnvironmentVariables() {
   if (!CLIENT_ID || !TENANT_ID || !SITE_ID || !DRIVE_ID || !SHAREPOINT_FOLDER || !CLIENT_SECRET) {
     console.error('Missing SharePoint environment variables:', {
@@ -33,9 +22,27 @@ function validateEnvironmentVariables() {
   }
 }
 
+// Initialize MSAL client after validation
+let msalClient: ConfidentialClientApplication;
+
+function getMsalClient(): ConfidentialClientApplication {
+  if (!msalClient) {
+    validateEnvironmentVariables();
+    const msalConfig = {
+      auth: {
+        clientId: CLIENT_ID!,
+        authority: `https://login.microsoftonline.com/${TENANT_ID!}`,
+        clientSecret: CLIENT_SECRET!,
+      }
+    };
+    msalClient = new ConfidentialClientApplication(msalConfig);
+  }
+  return msalClient;
+}
+
 export async function get_access_token(): Promise<string> {
   try {
-    validateEnvironmentVariables();
+    const client = getMsalClient();
     
     console.log('Getting access token with config:', {
       clientId: CLIENT_ID,
@@ -43,7 +50,7 @@ export async function get_access_token(): Promise<string> {
       hasClientSecret: !!CLIENT_SECRET
     });
 
-    const result = await msalClient.acquireTokenByClientCredential({
+    const result = await client.acquireTokenByClientCredential({
       scopes: ['https://graph.microsoft.com/.default']
     });
 
