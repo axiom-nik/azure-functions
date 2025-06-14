@@ -1,4 +1,7 @@
 import { ConfidentialClientApplication } from '@azure/msal-node';
+import ExcelJS from 'exceljs';
+import { JobDivaService } from '@/lib/jobdiva';
+import { Buffer } from 'buffer';
 
 // Load environment variables
 const CLIENT_ID = process.env.CLIENT_ID;
@@ -234,4 +237,54 @@ export async function upload_file_to_sharepoint(
     }
     return false;
   }
-} 
+}
+
+// Function to create an Excel file with a table
+async function createExcelFileWithTable(data: any[], filename: string): Promise<Uint8Array> {
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('JobDiva Data');
+
+  // Add column headers
+  const columns = Object.keys(data[0]).map(key => ({ header: key, key }));
+  worksheet.columns = columns;
+
+  // Add rows
+  data.forEach(item => {
+    worksheet.addRow(item);
+  });
+
+  // Define a table
+  worksheet.addTable({
+    name: 'JobDivaTable',
+    ref: 'A1',
+    headerRow: true,
+    columns: columns.map(col => ({ name: col.header })),
+    rows: data.map(item => Object.values(item)),
+  });
+
+  // Write to buffer
+  return new Uint8Array(await workbook.xlsx.writeBuffer());
+}
+
+// Example usage
+async function exampleUsage() {
+  const jobDivaService = new JobDivaService();
+  const response = await jobDivaService.fetchInitialData();
+
+  if (!response.success || !response.data) {
+    console.error('Failed to fetch data from JobDiva:', response.error);
+    return;
+  }
+
+  // Ensure data is an array
+  if (!Array.isArray(response.data)) {
+    console.error('Data is not in the expected array format');
+    return;
+  }
+
+  // Correctly handle the buffer type
+  const buffer: Uint8Array = await createExcelFileWithTable(response.data, 'JobDivaData.xlsx');
+  // Use the buffer to upload to SharePoint or save locally
+}
+
+// Ensure to call exampleUsage or integrate it into your existing workflow 

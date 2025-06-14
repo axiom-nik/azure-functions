@@ -3,6 +3,8 @@
 
 import { useState } from 'react';
 import formStyles from '../styles/Form.module.css'; // This is the correct path
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function DocumentsSubmissionPage() {
   const [candidateName, setCandidateName] = useState<string>('');
@@ -51,24 +53,39 @@ export default function DocumentsSubmissionPage() {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to upload to SharePoint');
+          throw new Error(`Failed to upload ${filename} to SharePoint`);
         }
 
-        alert('File uploaded successfully!');
+        toast.success(`${filename} uploaded successfully!`);
       };
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('An error occurred during file upload.');
+      const errorMessage = (error as Error).message;
+      toast.error(`An error occurred during file upload: ${errorMessage}`);
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Single submit handler for all file uploads
+  const handleSubmitAll = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Upload each file to SharePoint
-    await uploadFileToSharePoint(resumeFile, editedResumeFileName);
-    await uploadFileToSharePoint(uanCardFile, editedUanCardFileName);
-    await uploadFileToSharePoint(epfoServiceHistoryFile, editedEpfoServiceHistoryFileName);
-    await uploadFileToSharePoint(epfoMemberPassbookFile, editedEpfoMemberPassbookFileName);
+
+    const renameFile = (file: File | null, documentType: string, setEditedFileName: React.Dispatch<React.SetStateAction<string>>): File | null => {
+      if (!file) return null;
+      const fileExtension = file.name.split('.').pop();
+      const newFileName = `${candidateName.replace(/\s+/g, '_')}_${documentType}.${fileExtension}`;
+      setEditedFileName(newFileName);
+      return new File([file], newFileName, { type: file.type });
+    };
+
+    const renamedResumeFile = renameFile(resumeFile, 'resume', setEditedResumeFileName);
+    const renamedUanCardFile = renameFile(uanCardFile, 'uanCard', setEditedUanCardFileName);
+    const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory', setEditedEpfoServiceHistoryFileName);
+    const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook', setEditedEpfoMemberPassbookFileName);
+
+    await uploadFileToSharePoint(renamedResumeFile, renamedResumeFile?.name || '');
+    await uploadFileToSharePoint(renamedUanCardFile, renamedUanCardFile?.name || '');
+    await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, renamedEpfoServiceHistoryFile?.name || '');
+    await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, renamedEpfoMemberPassbookFile?.name || '');
   };
 
   interface FileUploadInputProps {
@@ -122,14 +139,12 @@ export default function DocumentsSubmissionPage() {
           />
         )}
       </div>
-      <button type="submit" className={formStyles.submitButton} style={{ marginLeft: '1rem' }}>
-        Submit
-      </button>
     </div>
   );
 
   return (
     <div className={formStyles.container}>
+      <ToastContainer />
       <div className={formStyles.formCard}>
         <div className={formStyles.headerDots}>
           <div className={formStyles.dot}></div>
@@ -142,7 +157,7 @@ export default function DocumentsSubmissionPage() {
         </p>
         <p className={formStyles.required}>* Required</p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmitAll}>
           <div className={formStyles.formGroup}>
             <label htmlFor="candidateName" className={formStyles.label}>
               Candidate Name <span className={formStyles.requiredStar}>*</span>
@@ -205,6 +220,10 @@ export default function DocumentsSubmissionPage() {
             editedFileName={editedEpfoMemberPassbookFileName}
             setEditedFileName={setEditedEpfoMemberPassbookFileName}
           />
+
+          <button type="submit" className={formStyles.submitButton} style={{ marginTop: '1rem' }}>
+            Submit All
+          </button>
         </form>
       </div>
     </div>
