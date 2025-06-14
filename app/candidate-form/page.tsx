@@ -67,10 +67,23 @@ export default function DocumentsSubmissionPage() {
   // Single submit handler for all file uploads
   const handleSubmitAll = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await uploadFileToSharePoint(resumeFile, editedResumeFileName);
-    await uploadFileToSharePoint(uanCardFile, editedUanCardFileName);
-    await uploadFileToSharePoint(epfoServiceHistoryFile, editedEpfoServiceHistoryFileName);
-    await uploadFileToSharePoint(epfoMemberPassbookFile, editedEpfoMemberPassbookFileName);
+
+    const renameFile = (file: File | null, documentType: string): File | null => {
+      if (!file) return null;
+      const fileExtension = file.name.split('.').pop();
+      const newFileName = `${candidateName.replace(/\s+/g, '_')}_${documentType}.${fileExtension}`;
+      return new File([file], newFileName, { type: file.type });
+    };
+
+    const renamedResumeFile = renameFile(resumeFile, 'resume');
+    const renamedUanCardFile = renameFile(uanCardFile, 'uanCard');
+    const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory');
+    const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook');
+
+    await uploadFileToSharePoint(renamedResumeFile, renamedResumeFile?.name || '');
+    await uploadFileToSharePoint(renamedUanCardFile, renamedUanCardFile?.name || '');
+    await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, renamedEpfoServiceHistoryFile?.name || '');
+    await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, renamedEpfoMemberPassbookFile?.name || '');
   };
 
   interface FileUploadInputProps {
