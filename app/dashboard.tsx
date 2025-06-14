@@ -1,22 +1,16 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import styles from './page.module.css';
 
 export default function Dashboard() {
-  const router = useRouter();
-
-  const navigateToJobDiva = () => {
-    router.push('/jobdiva');
-  };
-
   return (
     <main className={styles.main}>
       <h1 className={styles.title}>Welcome to the Axiom BGV Dashboard</h1>
       <p>Navigate to different services from here.</p>
-      <button className={styles.button} onClick={navigateToJobDiva}>
-        Go to JobDiva API
-      </button>
+      <Link href="/jobdiva">
+        <button className={styles.button}>Go to JobDiva API</button>
+      </Link>
     </main>
   );
 } 
