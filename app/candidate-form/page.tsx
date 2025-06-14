@@ -3,6 +3,8 @@
 
 import { useState } from 'react';
 import formStyles from '../styles/Form.module.css'; // This is the correct path
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function DocumentsSubmissionPage() {
   const [candidateName, setCandidateName] = useState<string>('');
@@ -51,14 +53,14 @@ export default function DocumentsSubmissionPage() {
         });
 
         if (!response.ok) {
-          throw new Error('Failed to upload to SharePoint');
+          throw new Error(`Failed to upload ${filename} to SharePoint`);
         }
 
-        alert('File uploaded successfully!');
+        toast.success(`${filename} uploaded successfully!`);
       };
     } catch (error) {
       console.error('Error uploading file:', error);
-      alert('An error occurred during file upload.');
+      toast.error(`An error occurred during file upload: ${error.message}`);
     }
   };
 
@@ -127,6 +129,7 @@ export default function DocumentsSubmissionPage() {
 
   return (
     <div className={formStyles.container}>
+      <ToastContainer />
       <div className={formStyles.formCard}>
         <div className={formStyles.headerDots}>
           <div className={formStyles.dot}></div>
