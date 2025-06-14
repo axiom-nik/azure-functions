@@ -60,7 +60,8 @@ export default function DocumentsSubmissionPage() {
       };
     } catch (error) {
       console.error('Error uploading file:', error);
-      toast.error(`An error occurred during file upload: ${error.message}`);
+      const errorMessage = (error as Error).message;
+      toast.error(`An error occurred during file upload: ${errorMessage}`);
     }
   };
 
@@ -68,17 +69,18 @@ export default function DocumentsSubmissionPage() {
   const handleSubmitAll = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const renameFile = (file: File | null, documentType: string): File | null => {
+    const renameFile = (file: File | null, documentType: string, setEditedFileName: React.Dispatch<React.SetStateAction<string>>): File | null => {
       if (!file) return null;
       const fileExtension = file.name.split('.').pop();
       const newFileName = `${candidateName.replace(/\s+/g, '_')}_${documentType}.${fileExtension}`;
+      setEditedFileName(newFileName);
       return new File([file], newFileName, { type: file.type });
     };
 
-    const renamedResumeFile = renameFile(resumeFile, 'resume');
-    const renamedUanCardFile = renameFile(uanCardFile, 'uanCard');
-    const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory');
-    const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook');
+    const renamedResumeFile = renameFile(resumeFile, 'resume', setEditedResumeFileName);
+    const renamedUanCardFile = renameFile(uanCardFile, 'uanCard', setEditedUanCardFileName);
+    const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory', setEditedEpfoServiceHistoryFileName);
+    const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook', setEditedEpfoMemberPassbookFileName);
 
     await uploadFileToSharePoint(renamedResumeFile, renamedResumeFile?.name || '');
     await uploadFileToSharePoint(renamedUanCardFile, renamedUanCardFile?.name || '');
