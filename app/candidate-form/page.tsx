@@ -62,9 +62,9 @@ export default function DocumentsSubmissionPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Single submit handler for all file uploads
+  const handleSubmitAll = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Upload each file to SharePoint
     await uploadFileToSharePoint(resumeFile, editedResumeFileName);
     await uploadFileToSharePoint(uanCardFile, editedUanCardFileName);
     await uploadFileToSharePoint(epfoServiceHistoryFile, editedEpfoServiceHistoryFileName);
@@ -122,9 +122,6 @@ export default function DocumentsSubmissionPage() {
           />
         )}
       </div>
-      <button type="submit" className={formStyles.submitButton} style={{ marginLeft: '1rem' }}>
-        Submit
-      </button>
     </div>
   );
 
@@ -142,7 +139,7 @@ export default function DocumentsSubmissionPage() {
         </p>
         <p className={formStyles.required}>* Required</p>
 
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmitAll}>
           <div className={formStyles.formGroup}>
             <label htmlFor="candidateName" className={formStyles.label}>
               Candidate Name <span className={formStyles.requiredStar}>*</span>
@@ -205,6 +202,10 @@ export default function DocumentsSubmissionPage() {
             editedFileName={editedEpfoMemberPassbookFileName}
             setEditedFileName={setEditedEpfoMemberPassbookFileName}
           />
+
+          <button type="submit" className={formStyles.submitButton} style={{ marginTop: '1rem' }}>
+            Submit All
+          </button>
         </form>
       </div>
     </div>
