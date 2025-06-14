@@ -1,11 +1,11 @@
 import { ConfidentialClientApplication } from '@azure/msal-node';
 
 // Load environment variables
-const CLIENT_ID = process.env.NEXT_PUBLIC_CLIENT_ID;
-const TENANT_ID = process.env.NEXT_PUBLIC_TENANT_ID;
-const SITE_ID = process.env.NEXT_PUBLIC_SITE_ID;
-const DRIVE_ID = process.env.NEXT_PUBLIC_DRIVE_ID;
-const SHAREPOINT_FOLDER = process.env.NEXT_PUBLIC_SHAREPOINT_FOLDER;
+const CLIENT_ID = process.env.CLIENT_ID;
+const TENANT_ID = process.env.TENANT_ID;
+const SITE_ID = process.env.SITE_ID;
+const DRIVE_ID = process.env.DRIVE_ID;
+const SHAREPOINT_FOLDER = process.env.SHAREPOINT_FOLDER;
 const CLIENT_SECRET = process.env.CLIENT_SECRET;
 
 function validateEnvironmentVariables() {
