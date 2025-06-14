@@ -29,42 +29,46 @@ export default function DocumentsSubmissionPage() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // This is where you would handle form submission, including file uploads.
-    // You'll need to send data to your backend API.
-
-    console.log('Form Submitted!');
-    console.log('Candidate Name:', candidateName);
-    console.log('Resume File:', resumeFile ? resumeFile.name : 'No file');
-    console.log('UAN Card File:', uanCardFile ? uanCardFile.name : 'No file');
-    console.log('EPFO Service History File:', epfoServiceHistoryFile ? epfoServiceHistoryFile.name : 'No file');
-    console.log('EPFO Member Passbook File:', epfoMemberPassbookFile ? epfoMemberPassbookFile.name : 'No file');
-
-    // Example of how you might send data (conceptual, needs backend endpoint)
-    /*
-    const formData = new FormData();
-    formData.append('candidateName', candidateName);
-    if (resumeFile) formData.append('resume', resumeFile);
-    if (uanCardFile) formData.append('uanCard', uanCardFile);
-    // ... append other files
+  const uploadFileToSharePoint = async (file: File | null, filename: string) => {
+    if (!file) return;
 
     try {
-      const response = await fetch('/api/submit-documents', { // Replace with your actual API endpoint
-        method: 'POST',
-        body: formData,
-      });
-      if (response.ok) {
-        alert('Documents submitted successfully!');
-        // Reset form or redirect
-      } else {
-        alert('Submission failed!');
-      }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = async () => {
+        const base64Data = reader.result?.toString().split(',')[1];
+        if (!base64Data) return;
+
+        const response = await fetch('/api/sharepoint/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            base64Data,
+            filename,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to upload to SharePoint');
+        }
+
+        alert('File uploaded successfully!');
+      };
     } catch (error) {
-      console.error('Error submitting form:', error);
-      alert('An error occurred during submission.');
+      console.error('Error uploading file:', error);
+      alert('An error occurred during file upload.');
     }
-    */
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    // Upload each file to SharePoint
+    await uploadFileToSharePoint(resumeFile, editedResumeFileName);
+    await uploadFileToSharePoint(uanCardFile, editedUanCardFileName);
+    await uploadFileToSharePoint(epfoServiceHistoryFile, editedEpfoServiceHistoryFileName);
+    await uploadFileToSharePoint(epfoMemberPassbookFile, editedEpfoMemberPassbookFileName);
   };
 
   interface FileUploadInputProps {
