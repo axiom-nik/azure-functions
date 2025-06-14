@@ -19,6 +19,8 @@ export default function RootLayout({
           <nav>
             <ul>
               {/* Navigation links removed */}
+
+              
             </ul>
           </nav>
           <main>{children}</main>
