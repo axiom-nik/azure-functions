@@ -15,15 +15,17 @@ export default function Dashboard() {
   };
 
   return (
-    <main className={styles.main}>
+    <main className={styles.main} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
       <h1 className={styles.title}>Welcome to the Axiom BGV Dashboard</h1>
       <p>Navigate to different services from here.</p>
-      <button className={styles.button} onClick={navigateToJobDiva}>
-        Go to JobDiva API
-      </button>
-      <button className={styles.button} onClick={navigateToCandidateForm}>
-        Go to Candidate Form
-      </button>
+      <div style={{ display: 'flex', gap: '1rem' }}>
+        <button className={styles.button} onClick={navigateToJobDiva}>
+          Go to JobDiva API
+        </button>
+        <button className={styles.button} onClick={navigateToCandidateForm}>
+          Go to Candidate Form
+        </button>
+      </div>
     </main>
   );
 } 
