@@ -126,22 +126,23 @@
   }
   
   .submitButton {
-    width: 150px;
-    padding: 12px 20px;
-    background-color: #4caf50; /* Green submit button */
+    background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 8px;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
     font-size: 16px;
-    font-weight: 600;
+    margin: 4px 2px;
     cursor: pointer;
-    transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    margin-top: 20px;
+    transition: background-color 0.3s ease;
   }
   
-  .submitButton:hover {
-    background-color: #43a047;
-    box-shadow: 0 4px 10px rgba(76, 175, 80, 0.3);
+  .submitButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
   }
   
   /* Tooltip styles */
