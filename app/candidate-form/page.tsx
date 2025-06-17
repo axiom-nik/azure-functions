@@ -158,6 +158,8 @@ export default function DocumentsSubmissionPage() {
   </div>
 );
 
+  const isSubmitEnabled = resumeFile && uanCardFile && epfoServiceHistoryFile && epfoMemberPassbookFile;
+
   return (
     <div className={formStyles.container}>
       <ToastContainer />
@@ -219,8 +221,13 @@ export default function DocumentsSubmissionPage() {
             setEditedFileName={setEditedEpfoMemberPassbookFileName}
           />
 
-          <button type="submit" className={formStyles.submitButton} style={{ marginTop: '1rem' }}>
-            Submit All
+          <button
+            type="submit"
+            className={`${formStyles.submitButton} ${!isSubmitEnabled ? formStyles.disabledButton : ''}`}
+            style={{ marginTop: '1rem' }}
+            disabled={!isSubmitEnabled}
+          >
+            Submit
           </button>
         </form>
       </div>
