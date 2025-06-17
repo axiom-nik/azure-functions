@@ -29,11 +29,8 @@ export default function DocumentsSubmissionPage() {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: React.Dispatch<React.SetStateAction<File | null>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      const fileExtension = file.name.split('.').pop();
-      const newFileName = `${candidateName.replace(/\s+/g, '_')}_${documentType}.${fileExtension}`;
-      const renamedFile = new File([file], newFileName, { type: file.type });
-      setFile(renamedFile);
-      setEditedFileName(newFileName);
+      setFile(file);
+      setEditedFileName(file.name);
     } else {
       setFile(null);
       setEditedFileName('');
