@@ -22,7 +22,8 @@ export default function DocumentsSubmissionPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const dataParam = urlParams.get('data');
     if (dataParam) {
-      setCandidateName(dataParam);
+      const name = dataParam.replace(/_\d+$/, ''); // Remove the last part of the string
+      setCandidateName(name);
     }
   }, []);
 
@@ -165,12 +166,19 @@ export default function DocumentsSubmissionPage() {
 
   if (uploadComplete) {
     return (
-      <div className={formStyles.thankYouMessage}>
-        <h1>Thank you, {candidateName}!</h1>
-        <p>The uploaded documents have been successfully received. Our BGV team will promptly review the submission and will be in touch in case any additional information is needed.</p>
-        <p>We appreciate the opportunity to represent you in your career pursuit and look forward to working with you.</p>
-        <p>Have a wonderful day!</p>
-        <p>You may close this browser window at this time.</p>
+      <div className={formStyles.container}>
+        <div className={formStyles.formCard}>
+          <div className={formStyles.headerDots}>
+            <div className={formStyles.dot}></div>
+            <div className={formStyles.dot}></div>
+            <div className={formStyles.dot}></div>
+          </div>
+          <h1 className={formStyles.title}>Thank you, {candidateName}!</h1>
+          <p className={formStyles.greeting}>The uploaded documents have been successfully received. Our BGV team will promptly review the submission and will be in touch in case any additional information is needed.</p>
+          <p className={formStyles.greeting}>We appreciate the opportunity to represent you in your career pursuit and look forward to working with you.</p>
+          <p className={formStyles.greeting}>Have a wonderful day!</p>
+          <p className={formStyles.greeting}>You may close this browser window at this time.</p>
+        </div>
       </div>
     );
   }
