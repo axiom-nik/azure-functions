@@ -48,6 +48,8 @@ export default function DocumentsSubmissionPage() {
         const base64Data = reader.result?.toString().split(',')[1];
         if (!base64Data) return;
 
+        const toastId = toast.loading(`Uploading ${filename}...`); // Show loading toast
+
         const response = await fetch('/api/sharepoint/upload', {
           method: 'POST',
           headers: {
@@ -63,7 +65,10 @@ export default function DocumentsSubmissionPage() {
           throw new Error(`Failed to upload ${filename} to SharePoint`);
         }
 
-        toast.success(`${filename} uploaded successfully!`);
+        toast.update(toastId, { render: `${filename} uploaded successfully!`, type: 'success', isLoading: false, autoClose: 5000 }); // Update toast to success
+      };
+      reader.onerror = () => {
+        toast.error(`Error reading file: ${filename}`);
       };
     } catch (error) {
       console.error('Error uploading file:', error);
