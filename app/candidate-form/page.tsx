@@ -196,8 +196,16 @@ export default function DocumentsSubmissionPage() {
             <div className={formStyles.dot}></div>
             <div className={formStyles.dot}></div>
           </div>
-          <h1 className={formStyles.title}>Documents Submission</h1>
-          <p className={formStyles.required}>* Required</p>
+          <h1 className={formStyles.title}>Welcome, {candidateNameForDisplay}!</h1>
+          <p className={formStyles.greeting}>Thank you for responding to the BGV document request!</p>
+          <p className={formStyles.instructions}>A couple of suggestions to avoid delays:</p>
+          <ul className={formStyles.instructionsList}>
+            <li>Please ensure documents are clear, complete, and not password-protected</li>
+            <li>All uploads must be in PDF, DOC/DOCX, or image (JPG/PNG) formats</li>
+          </ul>
+          <p className={formStyles.instructions}>All files shared here are transmitted over a secure, encrypted channel and stored safely in compliance with our data protection policies.</p>
+          <p className={formStyles.instructions}>If you face any technical issues, please reach out to our UAN team led by Brain Wells at <a href="mailto:Brian.Wells@axiomglobal.com">Brian.Wells@axiomglobal.com</a>.</p>
+          <p className={formStyles.instructions}>We're excited to have you moving up in the hiring process.</p>
 
           <form onSubmit={handleSubmitAll}>
             <FileUploadInput
