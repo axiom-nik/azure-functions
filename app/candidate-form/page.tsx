@@ -98,8 +98,8 @@ export default function DocumentsSubmissionPage() {
     await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, renamedEpfoServiceHistoryFile?.name || '');
     await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, renamedEpfoMemberPassbookFile?.name || '');
 
-    // Add a 5-second delay before showing the thank-you page
-    setTimeout(() => setUploadComplete(true), 5000);
+    // Extend the delay to 10 seconds before showing the thank-you page
+    setTimeout(() => setUploadComplete(true), 10000);
   };
 
   interface FileUploadInputProps {
@@ -170,10 +170,9 @@ export default function DocumentsSubmissionPage() {
 
   const isSubmitEnabled = resumeFile && uanCardFile && epfoServiceHistoryFile && epfoMemberPassbookFile;
 
-  return (
-    <div className={formStyles.container}>
-      <ToastContainer />
-      {uploadComplete ? (
+  if (uploadComplete) {
+    return (
+      <div className={formStyles.container}>
         <div className={formStyles.formCard}>
           <div className={formStyles.headerDots}>
             <div className={formStyles.dot}></div>
@@ -185,80 +184,86 @@ export default function DocumentsSubmissionPage() {
           <p className={formStyles.greeting}>We appreciate the opportunity to represent you in your career pursuit and look forward to working with you.</p>
           <p className={formStyles.greeting}>Have a wonderful day!</p>
           <p className={formStyles.greeting}>You may close this browser window at this time.</p>
+          <button className={formStyles.closeButton} onClick={() => window.close()}>Close Window</button>
         </div>
-      ) : (
-        <div className={formStyles.formCard}>
-          <div className={formStyles.headerDots}>
-            <div className={formStyles.dot}></div>
-            <div className={formStyles.dot}></div>
-            <div className={formStyles.dot}></div>
-          </div>
-          <h1 className={formStyles.title}>Documents Submission</h1>
-          <p className={formStyles.required}>* Required</p>
+      </div>
+    );
+  }
 
-          <form onSubmit={handleSubmitAll}>
-            <FileUploadInput
-              label="Resume"
-              id="resume"
-              file={resumeFile}
-              setFile={setResumeFile}
-              limit={1}
-              allowedTypes={['Word', 'PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
-              editedFileName={editedResumeFileName}
-              setEditedFileName={setEditedResumeFileName}
-            />
-
-            <FileUploadInput
-              label="UAN Card"
-              id="uanCard"
-              file={uanCardFile}
-              setFile={setUanCardFile}
-              limit={1}
-              allowedTypes={['PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
-              editedFileName={editedUanCardFileName}
-              setEditedFileName={setEditedUanCardFileName}
-            />
-
-            <FileUploadInput
-              label="EPFO Service History"
-              id="epfoServiceHistory"
-              file={epfoServiceHistoryFile}
-              setFile={setEpfoServiceHistoryFile}
-              limit={10}
-              allowedTypes={['PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
-              editedFileName={editedEpfoServiceHistoryFileName}
-              setEditedFileName={setEditedEpfoServiceHistoryFileName}
-            />
-
-            <FileUploadInput
-              label="EPFO Member Passbook"
-              id="epfoMemberPassbook"
-              file={epfoMemberPassbookFile}
-              setFile={setEpfoMemberPassbookFile}
-              limit={1}
-              allowedTypes={['PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
-              editedFileName={editedEpfoMemberPassbookFileName}
-              setEditedFileName={setEditedEpfoMemberPassbookFileName}
-            />
-
-            <button
-              type="submit"
-              className={formStyles.submitButton}
-              style={{ marginTop: '1rem' }}
-              disabled={!isSubmitEnabled}
-            >
-              Submit
-            </button>
-            <p className={formStyles.comment} style={{ marginTop: '0.5rem' }}>
-              {isSubmitEnabled ? 'You may submit all four documents now.' : 'All four documents need to be uploaded together.'}
-            </p>
-          </form>
+  return (
+    <div className={formStyles.container}>
+      <ToastContainer />
+      <div className={formStyles.formCard}>
+        <div className={formStyles.headerDots}>
+          <div className={formStyles.dot}></div>
+          <div className={formStyles.dot}></div>
+          <div className={formStyles.dot}></div>
         </div>
-      )}
+        <h1 className={formStyles.title}>Documents Submission</h1>
+        <p className={formStyles.required}>* Required</p>
+
+        <form onSubmit={handleSubmitAll}>
+          <FileUploadInput
+            label="Resume"
+            id="resume"
+            file={resumeFile}
+            setFile={setResumeFile}
+            limit={1}
+            allowedTypes={['Word', 'PDF']}
+            tooltipText="This question is not anonymous; the owner will see your name."
+            editedFileName={editedResumeFileName}
+            setEditedFileName={setEditedResumeFileName}
+          />
+
+          <FileUploadInput
+            label="UAN Card"
+            id="uanCard"
+            file={uanCardFile}
+            setFile={setUanCardFile}
+            limit={1}
+            allowedTypes={['PDF']}
+            tooltipText="This question is not anonymous; the owner will see your name."
+            editedFileName={editedUanCardFileName}
+            setEditedFileName={setEditedUanCardFileName}
+          />
+
+          <FileUploadInput
+            label="EPFO Service History"
+            id="epfoServiceHistory"
+            file={epfoServiceHistoryFile}
+            setFile={setEpfoServiceHistoryFile}
+            limit={10}
+            allowedTypes={['PDF']}
+            tooltipText="This question is not anonymous; the owner will see your name."
+            editedFileName={editedEpfoServiceHistoryFileName}
+            setEditedFileName={setEditedEpfoServiceHistoryFileName}
+          />
+
+          <FileUploadInput
+            label="EPFO Member Passbook"
+            id="epfoMemberPassbook"
+            file={epfoMemberPassbookFile}
+            setFile={setEpfoMemberPassbookFile}
+            limit={1}
+            allowedTypes={['PDF']}
+            tooltipText="This question is not anonymous; the owner will see your name."
+            editedFileName={editedEpfoMemberPassbookFileName}
+            setEditedFileName={setEditedEpfoMemberPassbookFileName}
+          />
+
+          <button
+            type="submit"
+            className={formStyles.submitButton}
+            style={{ marginTop: '1rem' }}
+            disabled={!isSubmitEnabled}
+          >
+            Submit
+          </button>
+          <p className={formStyles.comment} style={{ marginTop: '0.5rem' }}>
+            {isSubmitEnabled ? 'You may submit all four documents now.' : 'All four documents need to be uploaded together.'}
+          </p>
+        </form>
+      </div>
     </div>
   );
 }
