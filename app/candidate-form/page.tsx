@@ -21,8 +21,7 @@ export default function DocumentsSubmissionPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const dataParam = urlParams.get('data');
     if (dataParam) {
-      const [name] = dataParam.split('_');
-      setCandidateName(name);
+      setCandidateName(dataParam);
     }
   }, []);
 
