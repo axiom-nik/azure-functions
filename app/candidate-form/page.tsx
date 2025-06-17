@@ -134,7 +134,7 @@ export default function DocumentsSubmissionPage() {
         id={id}
         onChange={(e) => handleFileChange(e, setFile, setEditedFileName, id)}
         style={{ display: 'none' }}
-        accept={allowedTypes.map(type => `.${type.toLowerCase()}`).join(',')}
+        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" // Restrict to PDF, DOC/DOCX, JPG/PNG
         multiple={limit > 1}
       />
       <div className={formStyles.uploadBox} onClick={() => document.getElementById(id)!.click()}>
