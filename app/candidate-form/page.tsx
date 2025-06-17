@@ -256,17 +256,20 @@ export default function DocumentsSubmissionPage() {
               setEditedFileName={setEditedEpfoMemberPassbookFileName}
             />
 
-            <button
-              type="submit"
-              className={formStyles.submitButton}
-              style={{ marginTop: '1rem' }}
-              disabled={!isSubmitEnabled}
-            >
-              Submit
-            </button>
-            <p className={formStyles.comment} style={{ marginTop: '0.5rem' }}>
-              {isSubmitEnabled ? 'You may submit all four documents now.' : 'All four documents need to be uploaded together.'}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+              <button
+                type="submit"
+                className={formStyles.submitButton}
+                disabled={!isSubmitEnabled}
+              >
+                Submit
+              </button>
+              {!isSubmitEnabled && (
+                <p className={formStyles.comment} style={{ marginLeft: '1rem' }}>
+                  All four documents need to be uploaded together.
+                </p>
+              )}
+            </div>
           </form>
         </div>
       )}
