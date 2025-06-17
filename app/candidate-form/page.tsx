@@ -16,6 +16,7 @@ export default function DocumentsSubmissionPage() {
   const [editedUanCardFileName, setEditedUanCardFileName] = useState<string>('');
   const [editedEpfoServiceHistoryFileName, setEditedEpfoServiceHistoryFileName] = useState<string>('');
   const [editedEpfoMemberPassbookFileName, setEditedEpfoMemberPassbookFileName] = useState<string>('');
+  const [uploadComplete, setUploadComplete] = useState<boolean>(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -90,6 +91,8 @@ export default function DocumentsSubmissionPage() {
     await uploadFileToSharePoint(renamedUanCardFile, renamedUanCardFile?.name || '');
     await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, renamedEpfoServiceHistoryFile?.name || '');
     await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, renamedEpfoMemberPassbookFile?.name || '');
+
+    setUploadComplete(true); // Set upload complete to true after all uploads
   };
 
   interface FileUploadInputProps {
@@ -159,6 +162,18 @@ export default function DocumentsSubmissionPage() {
 );
 
   const isSubmitEnabled = resumeFile && uanCardFile && epfoServiceHistoryFile && epfoMemberPassbookFile;
+
+  if (uploadComplete) {
+    return (
+      <div className={formStyles.thankYouMessage}>
+        <h1>Thank you, {candidateName}!</h1>
+        <p>The uploaded documents have been successfully received. Our BGV team will promptly review the submission and will be in touch in case any additional information is needed.</p>
+        <p>We appreciate the opportunity to represent you in your career pursuit and look forward to working with you.</p>
+        <p>Have a wonderful day!</p>
+        <p>You may close this browser window at this time.</p>
+      </div>
+    );
+  }
 
   return (
     <div className={formStyles.container}>
