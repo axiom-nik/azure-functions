@@ -101,46 +101,58 @@ export default function DocumentsSubmissionPage() {
   }
 
   const FileUploadInput: React.FC<FileUploadInputProps> = ({ label, id, file, setFile, limit, allowedTypes, tooltipText, editedFileName, setEditedFileName }) => (
-    <div className={formStyles.formGroup} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-      <div style={{ flex: 1 }}>
-        <label htmlFor={id} className={formStyles.label}>
-          {label}
-          <span className={formStyles.requiredStar}>*</span>
-          {tooltipText && (
-            <div className={formStyles.tooltipContainer}>
-              <span className={formStyles.tooltipIcon}>ⓘ</span>
-              <span className={formStyles.tooltipText}>{tooltipText}</span>
-            </div>
-          )}
-        </label>
-        <input
-          type="file"
-          id={id}
-          onChange={(e) => handleFileChange(e, setFile, setEditedFileName, id)}
-          style={{ display: 'none' }}
-          accept={allowedTypes.map(type => `.${type.toLowerCase()}`).join(',')}
-          multiple={limit > 1}
-        />
-        <div className={formStyles.uploadBox} onClick={() => document.getElementById(id)!.click()}>
-          <div className={formStyles.uploadIcon}>⬆</div>
-          <div className={formStyles.uploadText}>Upload file</div>
-          {file && <div className={formStyles.fileInfo}>Selected: {file.name}</div>}
-          <div className={formStyles.fileInfo}>
-            File number limit: {limit} Single file size limit: 10MB Allowed file types: {allowedTypes.join(', ')}
+  <div className={formStyles.formGroup} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+    <div style={{ flex: 1 }}>
+      <label htmlFor={id} className={formStyles.label}>
+        {label}
+        <span className={formStyles.requiredStar}>*</span>
+        {tooltipText && (
+          <div className={formStyles.tooltipContainer}>
+            <span className={formStyles.tooltipIcon}>ⓘ</span>
+            <span className={formStyles.tooltipText}>{tooltipText}</span>
           </div>
+        )}
+      </label>
+      <input
+        type="file"
+        id={id}
+        onChange={(e) => handleFileChange(e, setFile, setEditedFileName, id)}
+        style={{ display: 'none' }}
+        accept={allowedTypes.map(type => `.${type.toLowerCase()}`).join(',')}
+        multiple={limit > 1}
+      />
+      <div className={formStyles.uploadBox} onClick={() => document.getElementById(id)!.click()}>
+        <div className={formStyles.uploadIcon}>⬆</div>
+        <div className={formStyles.uploadText}>Upload file</div>
+        {file && <div className={formStyles.fileInfo}>Selected: {file.name}</div>}
+        <div className={formStyles.fileInfo}>
+          File number limit: {limit} Single file size limit: 10MB Allowed file types: {allowedTypes.join(', ')}
         </div>
-        {editedFileName && (
+      </div>
+      {editedFileName && (
+        <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem' }}>
           <input
             type="text"
             value={editedFileName}
             readOnly
             className={formStyles.input}
-            style={{ marginTop: '0.5rem' }}
+            style={{ marginRight: '0.5rem' }}
           />
-        )}
-      </div>
+          <button
+            type="button"
+            onClick={() => {
+              setFile(null);
+              setEditedFileName('');
+            }}
+            className={formStyles.deleteButton}
+          >
+            Delete
+          </button>
+        </div>
+      )}
     </div>
-  );
+  </div>
+);
 
   return (
     <div className={formStyles.container}>
@@ -152,27 +164,9 @@ export default function DocumentsSubmissionPage() {
           <div className={formStyles.dot}></div>
         </div>
         <h1 className={formStyles.title}>Documents Submission</h1>
-        <p className={formStyles.greeting}>
-          Hi. Michael. When you submit this form, the owner will see your name and email address.
-        </p>
         <p className={formStyles.required}>* Required</p>
 
         <form onSubmit={handleSubmitAll}>
-          <div className={formStyles.formGroup}>
-            <label htmlFor="candidateName" className={formStyles.label}>
-              Candidate Name <span className={formStyles.requiredStar}>*</span>
-            </label>
-            <input
-              type="text"
-              id="candidateName"
-              className={formStyles.input}
-              placeholder="Enter your answer"
-              value={candidateName}
-              onChange={(e) => setCandidateName(e.target.value)}
-              required
-            />
-          </div>
-
           <FileUploadInput
             label="Resume"
             id="resume"
