@@ -22,7 +22,7 @@ export default function DocumentsSubmissionPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const dataParam = urlParams.get('data');
     if (dataParam) {
-      const name = dataParam.replace(/_\d+$/, ''); // Remove the last part of the string
+      const name = dataParam.replace(/_\d+$/, '').replace(/_/g, ' '); // Remove the last part and replace underscores with spaces
       setCandidateName(name);
     }
   }, []);
@@ -93,7 +93,8 @@ export default function DocumentsSubmissionPage() {
     await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, renamedEpfoServiceHistoryFile?.name || '');
     await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, renamedEpfoMemberPassbookFile?.name || '');
 
-    setUploadComplete(true); // Set upload complete to true after all uploads
+    // Delay the thank-you page display to ensure alerts are shown
+    setTimeout(() => setUploadComplete(true), 1000);
   };
 
   interface FileUploadInputProps {
