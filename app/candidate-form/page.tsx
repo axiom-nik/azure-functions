@@ -229,6 +229,9 @@ export default function DocumentsSubmissionPage() {
           >
             Submit
           </button>
+          <p className={formStyles.comment} style={{ marginTop: '0.5rem' }}>
+            {isSubmitEnabled ? 'You may submit all four documents now.' : 'All four documents need to be uploaded together.'}
+          </p>
         </form>
       </div>
     </div>
