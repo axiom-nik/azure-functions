@@ -93,8 +93,8 @@ export default function DocumentsSubmissionPage() {
     await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, renamedEpfoServiceHistoryFile?.name || '');
     await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, renamedEpfoMemberPassbookFile?.name || '');
 
-    // Delay the thank-you page display to ensure alerts are shown
-    setTimeout(() => setUploadComplete(true), 1000);
+    // Set upload complete to true after all uploads and messages
+    setUploadComplete(true);
   };
 
   interface FileUploadInputProps {
