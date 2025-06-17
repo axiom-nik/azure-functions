@@ -8,6 +8,7 @@ import 'react-toastify/dist/ReactToastify.css';
 
 export default function DocumentsSubmissionPage() {
   const [candidateName, setCandidateName] = useState<string>('');
+  const [candidateNameForDisplay, setCandidateNameForDisplay] = useState<string>('');
   const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [uanCardFile, setUanCardFile] = useState<File | null>(null);
   const [epfoServiceHistoryFile, setEpfoServiceHistoryFile] = useState<File | null>(null);
@@ -22,8 +23,9 @@ export default function DocumentsSubmissionPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const dataParam = urlParams.get('data');
     if (dataParam) {
-      const name = dataParam.replace(/_\d+$/, '').replace(/_/g, ' '); // Remove the last part and replace underscores with spaces
-      setCandidateName(name);
+      setCandidateName(dataParam); // Store the full data parameter for renaming
+      const name = dataParam.replace(/_\d+$/, '').replace(/_/g, ' '); // Remove the last part and replace underscores with spaces for display
+      setCandidateNameForDisplay(name);
     }
   }, []);
 
@@ -84,7 +86,7 @@ export default function DocumentsSubmissionPage() {
     const renameFile = (file: File | null, documentType: string): File | null => {
       if (!file) return null;
       const fileExtension = file.name.split('.').pop();
-      const newFileName = `${candidateName.replace(/\s+/g, '_')}_${documentType}.${fileExtension}`;
+      const newFileName = `${candidateName}_${documentType}.${fileExtension}`; // Use the full name with identifier
       return new File([file], newFileName, { type: file.type });
     };
 
@@ -179,7 +181,7 @@ export default function DocumentsSubmissionPage() {
             <div className={formStyles.dot}></div>
             <div className={formStyles.dot}></div>
           </div>
-          <h1 className={formStyles.title}>Thank you, {candidateName}!</h1>
+          <h1 className={formStyles.title}>Thank you, {candidateNameForDisplay}!</h1>
           <p className={formStyles.greeting}>The uploaded documents have been successfully received. Our BGV team will promptly review the submission and will be in touch in case any additional information is needed.</p>
           <p className={formStyles.greeting}>We appreciate the opportunity to represent you in your career pursuit and look forward to working with you.</p>
           <p className={formStyles.greeting}>Have a wonderful day!</p>
