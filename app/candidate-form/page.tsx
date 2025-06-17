@@ -1,7 +1,7 @@
 // src/app/page.tsx
 'use client'; // This directive is important for client-side functionality in Next.js App Router
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import formStyles from '../styles/Form.module.css'; // This is the correct path
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -16,6 +16,15 @@ export default function DocumentsSubmissionPage() {
   const [editedUanCardFileName, setEditedUanCardFileName] = useState<string>('');
   const [editedEpfoServiceHistoryFileName, setEditedEpfoServiceHistoryFileName] = useState<string>('');
   const [editedEpfoMemberPassbookFileName, setEditedEpfoMemberPassbookFileName] = useState<string>('');
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const dataParam = urlParams.get('data');
+    if (dataParam) {
+      const [name] = dataParam.split('_');
+      setCandidateName(name);
+    }
+  }, []);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: React.Dispatch<React.SetStateAction<File | null>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string) => {
     if (e.target.files && e.target.files.length > 0) {
@@ -69,18 +78,17 @@ export default function DocumentsSubmissionPage() {
   const handleSubmitAll = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const renameFile = (file: File | null, documentType: string, setEditedFileName: React.Dispatch<React.SetStateAction<string>>): File | null => {
+    const renameFile = (file: File | null, documentType: string): File | null => {
       if (!file) return null;
       const fileExtension = file.name.split('.').pop();
       const newFileName = `${candidateName.replace(/\s+/g, '_')}_${documentType}.${fileExtension}`;
-      setEditedFileName(newFileName);
       return new File([file], newFileName, { type: file.type });
     };
 
-    const renamedResumeFile = renameFile(resumeFile, 'resume', setEditedResumeFileName);
-    const renamedUanCardFile = renameFile(uanCardFile, 'uanCard', setEditedUanCardFileName);
-    const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory', setEditedEpfoServiceHistoryFileName);
-    const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook', setEditedEpfoMemberPassbookFileName);
+    const renamedResumeFile = renameFile(resumeFile, 'resume');
+    const renamedUanCardFile = renameFile(uanCardFile, 'uanCard');
+    const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory');
+    const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook');
 
     await uploadFileToSharePoint(renamedResumeFile, renamedResumeFile?.name || '');
     await uploadFileToSharePoint(renamedUanCardFile, renamedUanCardFile?.name || '');
@@ -129,11 +137,11 @@ export default function DocumentsSubmissionPage() {
           File number limit: {limit} Single file size limit: 10MB Allowed file types: {allowedTypes.join(', ')}
         </div>
       </div>
-      {editedFileName && (
+      {file && (
         <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem' }}>
           <input
             type="text"
-            value={editedFileName}
+            value={file.name}
             readOnly
             className={formStyles.input}
             style={{ marginRight: '0.5rem' }}
