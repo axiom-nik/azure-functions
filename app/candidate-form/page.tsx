@@ -40,7 +40,7 @@ export default function DocumentsSubmissionPage() {
     }
   };
 
-  const uploadFileToSharePoint = async (file: File | null, filename: string) => {
+  const uploadFileToSharePoint = async (file: File | null, documentType: string) => {
     if (!file) return;
 
     try {
@@ -50,7 +50,7 @@ export default function DocumentsSubmissionPage() {
         const base64Data = reader.result?.toString().split(',')[1];
         if (!base64Data) return;
 
-        const toastId = toast.loading(`Uploading ${filename}...`); // Show loading toast
+        const toastId = toast.loading(`Uploading ${documentType}...`); // Show loading toast with document type
 
         const response = await fetch('/api/sharepoint/upload', {
           method: 'POST',
@@ -59,23 +59,23 @@ export default function DocumentsSubmissionPage() {
           },
           body: JSON.stringify({
             base64Data,
-            filename,
+            filename: file.name,
           }),
         });
 
         if (!response.ok) {
-          throw new Error(`Failed to upload ${filename} to SharePoint`);
+          throw new Error(`Failed to upload ${documentType} to SharePoint`);
         }
 
-        toast.update(toastId, { render: `${filename} uploaded successfully!`, type: 'success', isLoading: false, autoClose: 5000 }); // Update toast to success
+        toast.update(toastId, { render: `${documentType} uploaded successfully!`, type: 'success', isLoading: false, autoClose: 5000 }); // Update toast to success with document type
       };
       reader.onerror = () => {
-        toast.error(`Error reading file: ${filename}`);
+        toast.error(`Error reading ${documentType}`);
       };
     } catch (error) {
       console.error('Error uploading file:', error);
       const errorMessage = (error as Error).message;
-      toast.error(`An error occurred during file upload: ${errorMessage}`);
+      toast.error(`An error occurred during ${documentType} upload: ${errorMessage}`);
     }
   };
 
@@ -95,10 +95,10 @@ export default function DocumentsSubmissionPage() {
     const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory');
     const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook');
 
-    await uploadFileToSharePoint(renamedResumeFile, renamedResumeFile?.name || '');
-    await uploadFileToSharePoint(renamedUanCardFile, renamedUanCardFile?.name || '');
-    await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, renamedEpfoServiceHistoryFile?.name || '');
-    await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, renamedEpfoMemberPassbookFile?.name || '');
+    await uploadFileToSharePoint(renamedResumeFile, 'Resume');
+    await uploadFileToSharePoint(renamedUanCardFile, 'UAN Card');
+    await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, 'EPFO Service History');
+    await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, 'EPFO Member Passbook');
 
     // Extend the delay to 10 seconds before showing the thank-you page
     setTimeout(() => setUploadComplete(true), 10000);
@@ -256,17 +256,20 @@ export default function DocumentsSubmissionPage() {
               setEditedFileName={setEditedEpfoMemberPassbookFileName}
             />
 
-            <button
-              type="submit"
-              className={formStyles.submitButton}
-              style={{ marginTop: '1rem' }}
-              disabled={!isSubmitEnabled}
-            >
-              Submit
-            </button>
-            <p className={formStyles.comment} style={{ marginTop: '0.5rem' }}>
-              {isSubmitEnabled ? 'You may submit all four documents now.' : 'All four documents need to be uploaded together.'}
-            </p>
+            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
+              <button
+                type="submit"
+                className={formStyles.submitButton}
+                disabled={!isSubmitEnabled}
+              >
+                Submit
+              </button>
+              {!isSubmitEnabled && (
+                <p className={formStyles.comment} style={{ marginLeft: '1rem' }}>
+                  All four documents need to be uploaded together.
+                </p>
+              )}
+            </div>
           </form>
         </div>
       )}
