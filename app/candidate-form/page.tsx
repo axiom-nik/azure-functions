@@ -18,6 +18,7 @@ export default function DocumentsSubmissionPage() {
   const [editedEpfoServiceHistoryFileName, setEditedEpfoServiceHistoryFileName] = useState<string>('');
   const [editedEpfoMemberPassbookFileName, setEditedEpfoMemberPassbookFileName] = useState<string>('');
   const [uploadComplete, setUploadComplete] = useState<boolean>(false);
+  const [uploadError, setUploadError] = useState<boolean>(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -50,7 +51,7 @@ export default function DocumentsSubmissionPage() {
         const base64Data = reader.result?.toString().split(',')[1];
         if (!base64Data) return;
 
-        const toastId = toast.loading(`Uploading ${documentType}...`); // Show loading toast with document type
+        const toastId = toast.loading(`Uploading ${documentType}...`);
 
         const response = await fetch('/api/sharepoint/upload', {
           method: 'POST',
@@ -67,26 +68,29 @@ export default function DocumentsSubmissionPage() {
           throw new Error(`Failed to upload ${documentType} to SharePoint`);
         }
 
-        toast.update(toastId, { render: `${documentType} uploaded successfully!`, type: 'success', isLoading: false, autoClose: 5000 }); // Update toast to success with document type
+        toast.update(toastId, { render: `${documentType} uploaded successfully!`, type: 'success', isLoading: false, autoClose: 5000 });
       };
       reader.onerror = () => {
         toast.error(`Error reading ${documentType}`);
+        setUploadError(true); // Set error state
       };
     } catch (error) {
       console.error('Error uploading file:', error);
       const errorMessage = (error as Error).message;
       toast.error(`An error occurred during ${documentType} upload: ${errorMessage}`);
+      setUploadError(true); // Set error state
     }
   };
 
   // Single submit handler for all file uploads
   const handleSubmitAll = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setUploadError(false); // Reset error state
 
     const renameFile = (file: File | null, documentType: string): File | null => {
       if (!file) return null;
       const fileExtension = file.name.split('.').pop();
-      const newFileName = `${candidateName}_${documentType}.${fileExtension}`; // Use the full name with identifier
+      const newFileName = `${candidateName}_${documentType}.${fileExtension}`;
       return new File([file], newFileName, { type: file.type });
     };
 
@@ -100,8 +104,9 @@ export default function DocumentsSubmissionPage() {
     await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, 'EPFO Service History');
     await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, 'EPFO Member Passbook');
 
-    // Extend the delay to 10 seconds before showing the thank-you page
-    setTimeout(() => setUploadComplete(true), 10000);
+    if (!uploadError) {
+      setTimeout(() => setUploadComplete(true), 10000);
+    }
   };
 
   interface FileUploadInputProps {
@@ -206,6 +211,12 @@ export default function DocumentsSubmissionPage() {
           <p className={formStyles.instructions}>All files shared here are transmitted over a secure, encrypted channel and stored safely in compliance with our data protection policies.</p>
           <p className={formStyles.instructions}>If you face any technical issues, please reach out to our UAN team led by Brain Wells at <a href="mailto:Brian.Wells@axiomglobal.com">Brian.Wells@axiomglobal.com</a>.</p>
           <p className={formStyles.instructions}>We're excited to have you moving up in the hiring process.</p>
+
+          {uploadError && (
+            <p className={formStyles.errorMessage} style={{ color: 'red', marginTop: '1rem' }}>
+              An error occurred during the upload. Please try again.
+            </p>
+          )}
 
           <form onSubmit={handleSubmitAll}>
             <FileUploadInput
