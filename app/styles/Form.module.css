@@ -1,0 +1,199 @@
+/* src/styles/Form.module.css */
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: linear-gradient(to bottom right, #e0f2f7, #f7f9fc); /* Light blue to light gray gradient */
+    padding: 20px;
+  }
+  
+  .formCard {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+    width: 100%;
+    max-width: 700px;
+    box-sizing: border-box;
+    position: relative; /* For the three dots */
+  }
+  
+  .headerDots {
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    display: flex;
+    gap: 4px;
+  }
+  
+  .dot {
+    width: 6px;
+    height: 6px;
+    background-color: #999;
+    border-radius: 50%;
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 25px;
+  }
+  
+  .greeting {
+    font-size: 15px;
+    color: #555;
+    margin-bottom: 25px;
+    line-height: 1.5;
+  }
+  
+  .required {
+    color: #d32f2f; /* Red for required */
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+  
+  .formGroup {
+    margin-bottom: 25px;
+  }
+  
+  .label {
+    display: block;
+    font-size: 15px;
+    color: #333;
+    font-weight: 500;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .requiredStar {
+    color: #d32f2f;
+    margin-left: 4px;
+  }
+  
+  .input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #333;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease-in-out;
+  }
+  
+  .input:focus {
+    outline: none;
+    border-color: #2196f3; /* Blue focus */
+    box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.2);
+  }
+  
+  .uploadBox {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out, border-color 0.2s ease-in-out;
+  }
+  
+  .uploadBox:hover {
+    background-color: #f0f0f0;
+    border-color: #c0c0c0;
+  }
+  
+  .uploadIcon {
+    font-size: 24px;
+    color: #666;
+    margin-bottom: 10px;
+  }
+  
+  .uploadText {
+    color: #3f51b5; /* Indigo for "Upload file" */
+    font-weight: 500;
+    font-size: 15px;
+  }
+  
+  .fileInfo {
+    font-size: 13px;
+    color: #777;
+    margin-top: 10px;
+    line-height: 1.4;
+  }
+  
+  .submitButton {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  
+  .submitButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+  
+  /* Tooltip styles */
+  .tooltipContainer {
+    position: relative;
+    display: inline-flex; /* To keep the icon next to text */
+    margin-left: 5px;
+    cursor: help;
+  }
+  
+  .tooltipIcon {
+    font-size: 16px;
+    color: #888;
+  }
+  
+  .tooltipText {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 6px;
+    padding: 8px 10px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%; /* Position above the icon */
+    left: 50%;
+    margin-left: -100px; /* Center the tooltip */
+    opacity: 0;
+    transition: opacity 0.3s;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+  
+  .tooltipText::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #555 transparent transparent transparent;
+  }
+  
+  .tooltipContainer:hover .tooltipText {
+    visibility: visible;
+    opacity: 1;
+  }
+
+  .disabledButton {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
