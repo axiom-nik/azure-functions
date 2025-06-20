@@ -147,7 +147,7 @@ export default function DocumentsSubmissionPage() {
         <div className={formStyles.uploadText}>Upload file</div>
         {file && <div className={formStyles.fileInfo}>Selected: {file.name}</div>}
         <div className={formStyles.fileInfo}>
-          File number limit: {limit} Single file size limit: 10MB Allowed file types: {allowedTypes.join(', ')}
+          File number limit: {limit} Single file size limit: 10MB
         </div>
       </div>
       {file && (
