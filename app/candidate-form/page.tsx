@@ -9,10 +9,10 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function DocumentsSubmissionPage() {
   const [candidateName, setCandidateName] = useState<string>('');
   const [candidateNameForDisplay, setCandidateNameForDisplay] = useState<string>('');
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [uanCardFile, setUanCardFile] = useState<File | null>(null);
-  const [epfoServiceHistoryFile, setEpfoServiceHistoryFile] = useState<File | null>(null);
-  const [epfoMemberPassbookFile, setEpfoMemberPassbookFile] = useState<File | null>(null);
+  const [resumeFiles, setResumeFiles] = useState<File[]>([]);
+  const [uanCardFiles, setUanCardFiles] = useState<File[]>([]);
+  const [epfoServiceHistoryFiles, setEpfoServiceHistoryFiles] = useState<File[]>([]);
+  const [epfoMemberPassbookFiles, setEpfoMemberPassbookFiles] = useState<File[]>([]);
   const [editedResumeFileName, setEditedResumeFileName] = useState<string>('');
   const [editedUanCardFileName, setEditedUanCardFileName] = useState<string>('');
   const [editedEpfoServiceHistoryFileName, setEditedEpfoServiceHistoryFileName] = useState<string>('');
@@ -30,13 +30,13 @@ export default function DocumentsSubmissionPage() {
     }
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: React.Dispatch<React.SetStateAction<File | null>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFiles: React.Dispatch<React.SetStateAction<File[]>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setFile(file);
-      setEditedFileName(file.name);
+      const files = Array.from(e.target.files);
+      setFiles(files);
+      setEditedFileName(files.map(file => file.name).join(', '));
     } else {
-      setFile(null);
+      setFiles([]);
       setEditedFileName('');
     }
   };
@@ -52,11 +52,12 @@ export default function DocumentsSubmissionPage() {
     return `${year}${month}${day}${hours}${minutes}${seconds}`;
   };
 
-  const renameFile = (file: File | null, documentType: string): File | null => {
+  const renameFile = (file: File | null, documentType: string, index: number): File | null => {
     if (!file) return null;
     const fileExtension = file.name.split('.').pop();
     const timestamp = generateTimestamp();
-    const newFileName = `${candidateName}_${documentType}_${timestamp}.${fileExtension}`;
+    const uniqueId = `${timestamp}_${index}`; // Add index to ensure uniqueness
+    const newFileName = `${candidateName}_${documentType}_${uniqueId}.${fileExtension}`;
     return new File([file], newFileName, { type: file.type });
   };
 
@@ -106,15 +107,23 @@ export default function DocumentsSubmissionPage() {
     e.preventDefault();
     setUploadError(false); // Reset error state
 
-    const renamedResumeFile = renameFile(resumeFile, 'resume');
-    const renamedUanCardFile = renameFile(uanCardFile, 'uanCard');
-    const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory');
-    const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook');
+    const renamedResumeFiles = resumeFiles.map((file, index) => renameFile(file, 'resume', index));
+    const renamedUanCardFiles = uanCardFiles.map((file, index) => renameFile(file, 'uanCard', index));
+    const renamedEpfoServiceHistoryFiles = epfoServiceHistoryFiles.map((file, index) => renameFile(file, 'epfoServiceHistory', index));
+    const renamedEpfoMemberPassbookFiles = epfoMemberPassbookFiles.map((file, index) => renameFile(file, 'epfoMemberPassbook', index));
 
-    await uploadFileToSharePoint(renamedResumeFile, 'Resume');
-    await uploadFileToSharePoint(renamedUanCardFile, 'UAN Card');
-    await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, 'EPFO Service History');
-    await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, 'EPFO Member Passbook');
+    for (const file of renamedResumeFiles) {
+      await uploadFileToSharePoint(file, 'Resume');
+    }
+    for (const file of renamedUanCardFiles) {
+      await uploadFileToSharePoint(file, 'UAN Card');
+    }
+    for (const file of renamedEpfoServiceHistoryFiles) {
+      await uploadFileToSharePoint(file, 'EPFO Service History');
+    }
+    for (const file of renamedEpfoMemberPassbookFiles) {
+      await uploadFileToSharePoint(file, 'EPFO Member Passbook');
+    }
 
     if (!uploadError) {
       setTimeout(() => setUploadComplete(true), 10000);
@@ -124,8 +133,8 @@ export default function DocumentsSubmissionPage() {
   interface FileUploadInputProps {
     label: string;
     id: string;
-    file: File | null;
-    setFile: React.Dispatch<React.SetStateAction<File | null>>;
+    file: File[];
+    setFile: React.Dispatch<React.SetStateAction<File[]>>;
     limit: number;
     allowedTypes: string[];
     tooltipText?: string;
@@ -151,22 +160,22 @@ export default function DocumentsSubmissionPage() {
         id={id}
         onChange={(e) => handleFileChange(e, setFile, setEditedFileName, id)}
         style={{ display: 'none' }}
-        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" // Restrict to PDF, DOC/DOCX, JPG/PNG
+        accept={allowedTypes.join(', ')}
         multiple={limit > 1}
       />
       <div className={formStyles.uploadBox} onClick={() => document.getElementById(id)!.click()}>
         <div className={formStyles.uploadIcon}>⬆</div>
         <div className={formStyles.uploadText}>Upload file</div>
-        {file && <div className={formStyles.fileInfo}>Selected: {file.name}</div>}
+        {file && file.length > 0 && <div className={formStyles.fileInfo}>Selected: {file.map((f: File) => f.name).join(', ')}</div>}
         <div className={formStyles.fileInfo}>
           File number limit: {limit} Single file size limit: 10MB
         </div>
       </div>
-      {file && (
+      {file && file.length > 0 && (
         <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem' }}>
           <input
             type="text"
-            value={file.name}
+            value={file.map((f: File) => f.name).join(', ')}
             readOnly
             className={formStyles.input}
             style={{ marginRight: '0.5rem' }}
@@ -174,7 +183,7 @@ export default function DocumentsSubmissionPage() {
           <button
             type="button"
             onClick={() => {
-              setFile(null);
+              setFile([]);
               setEditedFileName('');
             }}
             className={formStyles.deleteButton}
@@ -187,7 +196,7 @@ export default function DocumentsSubmissionPage() {
   </div>
 );
 
-  const isSubmitEnabled = resumeFile && uanCardFile && epfoServiceHistoryFile && epfoMemberPassbookFile;
+  const isSubmitEnabled = resumeFiles.length > 0 && uanCardFiles.length > 0 && epfoServiceHistoryFiles.length > 0 && epfoMemberPassbookFiles.length > 0;
 
   return (
     <div className={formStyles.container}>
@@ -234,10 +243,10 @@ export default function DocumentsSubmissionPage() {
             <FileUploadInput
               label="Resume"
               id="resume"
-              file={resumeFile}
-              setFile={setResumeFile}
+              file={resumeFiles}
+              setFile={setResumeFiles}
               limit={1}
-              allowedTypes={['Word', 'PDF']}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"]}
               tooltipText="This question is not anonymous; the owner will see your name."
               editedFileName={editedResumeFileName}
               setEditedFileName={setEditedResumeFileName}
@@ -246,10 +255,10 @@ export default function DocumentsSubmissionPage() {
             <FileUploadInput
               label="UAN Card"
               id="uanCard"
-              file={uanCardFile}
-              setFile={setUanCardFile}
+              file={uanCardFiles}
+              setFile={setUanCardFiles}
               limit={1}
-              allowedTypes={['PDF']}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"]}
               tooltipText="This question is not anonymous; the owner will see your name."
               editedFileName={editedUanCardFileName}
               setEditedFileName={setEditedUanCardFileName}
@@ -258,11 +267,10 @@ export default function DocumentsSubmissionPage() {
             <FileUploadInput
               label="EPFO Service History"
               id="epfoServiceHistory"
-              file={epfoServiceHistoryFile}
-              setFile={setEpfoServiceHistoryFile}
-              limit={10}
-              allowedTypes={['PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
+              file={epfoServiceHistoryFiles}
+              setFile={setEpfoServiceHistoryFiles}
+              limit={5}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"]}
               editedFileName={editedEpfoServiceHistoryFileName}
               setEditedFileName={setEditedEpfoServiceHistoryFileName}
             />
@@ -270,10 +278,10 @@ export default function DocumentsSubmissionPage() {
             <FileUploadInput
               label="EPFO Member Passbook"
               id="epfoMemberPassbook"
-              file={epfoMemberPassbookFile}
-              setFile={setEpfoMemberPassbookFile}
+              file={epfoMemberPassbookFiles}
+              setFile={setEpfoMemberPassbookFiles}
               limit={1}
-              allowedTypes={['PDF']}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"]}
               tooltipText="This question is not anonymous; the owner will see your name."
               editedFileName={editedEpfoMemberPassbookFileName}
               setEditedFileName={setEditedEpfoMemberPassbookFileName}
