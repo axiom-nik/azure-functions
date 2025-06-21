@@ -41,6 +41,25 @@ export default function DocumentsSubmissionPage() {
     }
   };
 
+  const generateTimestamp = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  };
+
+  const renameFile = (file: File | null, documentType: string): File | null => {
+    if (!file) return null;
+    const fileExtension = file.name.split('.').pop();
+    const timestamp = generateTimestamp();
+    const newFileName = `${candidateName}_${documentType}_${timestamp}.${fileExtension}`;
+    return new File([file], newFileName, { type: file.type });
+  };
+
   const uploadFileToSharePoint = async (file: File | null, documentType: string) => {
     if (!file) return;
 
@@ -86,13 +105,6 @@ export default function DocumentsSubmissionPage() {
   const handleSubmitAll = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setUploadError(false); // Reset error state
-
-    const renameFile = (file: File | null, documentType: string): File | null => {
-      if (!file) return null;
-      const fileExtension = file.name.split('.').pop();
-      const newFileName = `${candidateName}_${documentType}.${fileExtension}`;
-      return new File([file], newFileName, { type: file.type });
-    };
 
     const renamedResumeFile = renameFile(resumeFile, 'resume');
     const renamedUanCardFile = renameFile(uanCardFile, 'uanCard');
