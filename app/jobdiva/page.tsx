@@ -246,13 +246,6 @@ export default function JobDivaAPI() {
           >
             {isUploading ? 'Uploading...' : 'Upload to SharePoint'}
           </button>
-          <button
-            onClick={handleUploadJsonToSharePoint}
-            disabled={!apiResponse || isUploading}
-            className={`${styles.button} ${styles.uploadButton}`}
-          >
-            {isUploading ? 'Uploading...' : 'Upload JSON to SharePoint'}
-          </button>
         </div>
         <div className={styles.status}>
           <div className={styles.lastFetch}>
