@@ -43,9 +43,10 @@ export async function generateExcel(data: any): Promise<ExcelResult> {
     // Convert data to array if it's wrapped in a response object
     const records = Array.isArray(data) ? data : (data.data || []);
     
-    // Filter for Selected for L2 status
+    // Filter for Selected for L2 status and Capgemini India
     const filteredRecords = records.filter((record: any) => 
-      record['L1 Interview Status'] === 'Selected for L2'
+      record['L1 Interview Status'] === 'Selected for L2' &&
+      record['COMPANYNAME'] === 'Capgemini India'
     );
 
     // Select only the required fields that exist in the records
@@ -73,6 +74,10 @@ export async function generateExcel(data: any): Promise<ExcelResult> {
     const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
     
     console.log('Excel file generated successfully in memory');
+    
+    // Create JSON data with filtered records in memory
+    const jsonBuffer = Buffer.from(JSON.stringify(filteredRecords, null, 2));
+    console.log('JSON data created in memory');
     
     return {
       success: true,

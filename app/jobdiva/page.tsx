@@ -251,7 +251,7 @@ export default function JobDivaAPI() {
             disabled={!apiResponse || isUploading}
             className={`${styles.button} ${styles.uploadButton}`}
           >
-            {isUploading ? 'Uploading JSON...' : 'Upload JSON to SharePoint'}
+            {isUploading ? 'Uploading...' : 'Upload JSON to SharePoint'}
           </button>
         </div>
         <div className={styles.status}>
@@ -292,7 +292,7 @@ export default function JobDivaAPI() {
 
       {apiResponse && (
         <div className={styles.responseContainer}>
-          <h2>API Response:</h2>
+          <h2>Filtered JSON Data:</h2>
           <pre className={styles.response}>
             {apiResponse}
           </pre>
