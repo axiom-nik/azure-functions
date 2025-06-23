@@ -245,6 +245,9 @@ export default function DocumentsSubmissionPage() {
           )}
 
           <form onSubmit={handleSubmitAll} className={formStyles.form}>
+            <div className={formStyles.logoContainer} style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <img src="/axiom_logo_01.png" alt="Axiom Global Technologies Logo" className={formStyles.logo} style={{ width: '300px' }} />
+            </div>
             <h1 className={formStyles.title}>Document Submission</h1>
             <div className={formStyles.formGroup}>
               <label className={formStyles.label}>Candidate Name:</label>
