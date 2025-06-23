@@ -31,14 +31,15 @@ export default function DocumentsSubmissionPage() {
     }
   }, []);
 
+  useEffect(() => {
+    document.title = 'Axiom Background Check';
+  }, []);
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFiles: React.Dispatch<React.SetStateAction<File[]>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
-      setFiles(files);
-      setEditedFileName(files.map(file => file.name).join(', '));
-    } else {
-      setFiles([]);
-      setEditedFileName('');
+      setFiles(prevFiles => [...prevFiles, ...files]);
+      setEditedFileName(prevNames => [...prevNames.split(', '), ...files.map(file => file.name)].join(', '));
     }
   };
 
@@ -148,58 +149,68 @@ export default function DocumentsSubmissionPage() {
   }
 
   const FileUploadInput: React.FC<FileUploadInputProps> = ({ label, id, file, setFile, limit, allowedTypes, tooltipText, editedFileName, setEditedFileName }) => (
-  <div className={formStyles.formGroup} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-    <div style={{ flex: 1 }}>
-      <label htmlFor={id} className={formStyles.label}>
-        {label}
-        <span className={formStyles.requiredStar}>*</span>
-        {tooltipText && (
-          <div className={formStyles.tooltipContainer}>
-            <span className={formStyles.tooltipIcon}>ⓘ</span>
-            <span className={formStyles.tooltipText}>{tooltipText}</span>
+    <div className={formStyles.formGroup} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ flex: 1 }}>
+        <label htmlFor={id} className={formStyles.label}>
+          {label}
+          <span className={formStyles.requiredStar}>*</span>
+          {tooltipText && (
+            <div className={formStyles.tooltipContainer}>
+              <span className={formStyles.tooltipIcon}>ⓘ</span>
+              <span className={formStyles.tooltipText}>{tooltipText}</span>
+            </div>
+          )}
+        </label>
+        <input
+          type="file"
+          id={id}
+          onChange={(e) => handleFileChange(e, setFile, setEditedFileName, id)}
+          style={{ display: 'none' }}
+          accept={allowedTypes.join(', ')}
+          multiple={limit > 1}
+        />
+        <div
+          className={formStyles.uploadBox}
+          onClick={() => document.getElementById(id)!.click()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const files = Array.from(e.dataTransfer.files);
+            setFile(prevFiles => [...prevFiles, ...files]);
+            setEditedFileName(prevNames => [...prevNames.split(', '), ...files.map(file => file.name)].join(', '));
+          }}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          <div className={formStyles.uploadIcon}>⬆</div>
+          <div className={formStyles.uploadText}>Upload file</div>
+          {file && file.length > 0 && <div className={formStyles.fileInfo}>Selected: {file.map((f: File) => f.name).join(', ')}</div>}
+          <div className={formStyles.fileInfo}>
+            File number limit: {limit} Single file size limit: 10MB
+          </div>
+        </div>
+        {file && file.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              value={file.map((f: File) => f.name).join(', ')}
+              readOnly
+              className={formStyles.input}
+              style={{ marginRight: '0.5rem', width: '100%' }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setFile([]);
+                setEditedFileName('');
+              }}
+              className={formStyles.deleteButton}
+            >
+              Delete
+            </button>
           </div>
         )}
-      </label>
-      <input
-        type="file"
-        id={id}
-        onChange={(e) => handleFileChange(e, setFile, setEditedFileName, id)}
-        style={{ display: 'none' }}
-        accept={allowedTypes.join(', ')}
-        multiple={limit > 1}
-      />
-      <div className={formStyles.uploadBox} onClick={() => document.getElementById(id)!.click()}>
-        <div className={formStyles.uploadIcon}>⬆</div>
-        <div className={formStyles.uploadText}>Upload file</div>
-        {file && file.length > 0 && <div className={formStyles.fileInfo}>Selected: {file.map((f: File) => f.name).join(', ')}</div>}
-        <div className={formStyles.fileInfo}>
-          File number limit: {limit} Single file size limit: 10MB
-        </div>
       </div>
-      {file && file.length > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem' }}>
-          <input
-            type="text"
-            value={file.map((f: File) => f.name).join(', ')}
-            readOnly
-            className={formStyles.input}
-            style={{ marginRight: '0.5rem' }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              setFile([]);
-              setEditedFileName('');
-            }}
-            className={formStyles.deleteButton}
-          >
-            Delete
-          </button>
-        </div>
-      )}
     </div>
-  </div>
-);
+  );
 
   const isSubmitEnabled = resumeFiles.length > 0 && uanCardFiles.length > 0 && epfoServiceHistoryFiles.length > 0 && epfoMemberPassbookFiles.length > 0 && consentGiven;
 
@@ -281,7 +292,7 @@ export default function DocumentsSubmissionPage() {
               id="epfoServiceHistory"
               file={epfoServiceHistoryFiles}
               setFile={setEpfoServiceHistoryFiles}
-              limit={1}
+              limit={20}
               allowedTypes={[".pdf"]}
               editedFileName={editedEpfoServiceHistoryFileName}
               setEditedFileName={setEditedEpfoServiceHistoryFileName}
@@ -292,7 +303,7 @@ export default function DocumentsSubmissionPage() {
               id="epfoMemberPassbook"
               file={epfoMemberPassbookFiles}
               setFile={setEpfoMemberPassbookFiles}
-              limit={1}
+              limit={20}
               allowedTypes={[".pdf"]}
               editedFileName={editedEpfoMemberPassbookFileName}
               setEditedFileName={setEditedEpfoMemberPassbookFileName}
