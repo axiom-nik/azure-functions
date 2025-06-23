@@ -19,6 +19,7 @@ export default function DocumentsSubmissionPage() {
   const [editedEpfoMemberPassbookFileName, setEditedEpfoMemberPassbookFileName] = useState<string>('');
   const [uploadComplete, setUploadComplete] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<boolean>(false);
+  const [consentGiven, setConsentGiven] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -130,6 +131,10 @@ export default function DocumentsSubmissionPage() {
     }
   };
 
+  const handleConsentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setConsentGiven(event.target.checked);
+  };
+
   interface FileUploadInputProps {
     label: string;
     id: string;
@@ -196,7 +201,7 @@ export default function DocumentsSubmissionPage() {
   </div>
 );
 
-  const isSubmitEnabled = resumeFiles.length > 0 && uanCardFiles.length > 0 && epfoServiceHistoryFiles.length > 0 && epfoMemberPassbookFiles.length > 0;
+  const isSubmitEnabled = resumeFiles.length > 0 && uanCardFiles.length > 0 && epfoServiceHistoryFiles.length > 0 && epfoMemberPassbookFiles.length > 0 && consentGiven;
 
   return (
     <div className={formStyles.container}>
@@ -230,7 +235,7 @@ export default function DocumentsSubmissionPage() {
             <li>All uploads must be in PDF, DOC/DOCX, or image (JPG/PNG) formats</li>
           </ul>
           <p className={formStyles.instructions}>All files shared here are transmitted over a secure, encrypted channel and stored safely in compliance with our data protection policies.</p>
-          <p className={formStyles.instructions}>If you face any technical issues, please reach out to our UAN team led by Brain Wells at <a href="mailto:Brian.Wells@axiomglobal.com">Brian.Wells@axiomglobal.com</a>.</p>
+          <p className={formStyles.instructions}>If you face any technical issues, please reach out to our UAN team led by Brian Wells at <a href="mailto:Brian.Wells@axiomglobal.com">Brian.Wells@axiomglobal.com</a>.</p>
           <p className={formStyles.instructions}>We're excited to have you moving up in the hiring process.</p>
 
           {uploadError && (
@@ -239,15 +244,20 @@ export default function DocumentsSubmissionPage() {
             </p>
           )}
 
-          <form onSubmit={handleSubmitAll}>
+          <form onSubmit={handleSubmitAll} className={formStyles.form}>
+            <h1 className={formStyles.title}>Document Submission</h1>
+            <div className={formStyles.formGroup}>
+              <label className={formStyles.label}>Candidate Name:</label>
+              <span className={formStyles.candidateName}>{candidateNameForDisplay}</span>
+            </div>
+
             <FileUploadInput
               label="Resume"
               id="resume"
               file={resumeFiles}
               setFile={setResumeFiles}
               limit={1}
-              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"]}
-              tooltipText="This question is not anonymous; the owner will see your name."
+              allowedTypes={[".pdf", ".doc", ".docx"]}
               editedFileName={editedResumeFileName}
               setEditedFileName={setEditedResumeFileName}
             />
@@ -258,8 +268,7 @@ export default function DocumentsSubmissionPage() {
               file={uanCardFiles}
               setFile={setUanCardFiles}
               limit={1}
-              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"]}
-              tooltipText="This question is not anonymous; the owner will see your name."
+              allowedTypes={[".pdf"]}
               editedFileName={editedUanCardFileName}
               setEditedFileName={setEditedUanCardFileName}
             />
@@ -269,8 +278,8 @@ export default function DocumentsSubmissionPage() {
               id="epfoServiceHistory"
               file={epfoServiceHistoryFiles}
               setFile={setEpfoServiceHistoryFiles}
-              limit={5}
-              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"]}
+              limit={1}
+              allowedTypes={[".pdf"]}
               editedFileName={editedEpfoServiceHistoryFileName}
               setEditedFileName={setEditedEpfoServiceHistoryFileName}
             />
@@ -281,26 +290,26 @@ export default function DocumentsSubmissionPage() {
               file={epfoMemberPassbookFiles}
               setFile={setEpfoMemberPassbookFiles}
               limit={1}
-              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".jpeg", ".png"]}
-              tooltipText="This question is not anonymous; the owner will see your name."
+              allowedTypes={[".pdf"]}
               editedFileName={editedEpfoMemberPassbookFileName}
               setEditedFileName={setEditedEpfoMemberPassbookFileName}
             />
 
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-              <button
-                type="submit"
-                className={formStyles.submitButton}
-                disabled={!isSubmitEnabled}
-              >
-                Submit
-              </button>
-              {!isSubmitEnabled && (
-                <p className={formStyles.comment} style={{ marginLeft: '1rem' }}>
-                  All four documents need to be uploaded together.
-                </p>
-              )}
+            <div className={formStyles.consentContainer}>
+              <input
+                type="checkbox"
+                id="consentCheckbox"
+                checked={consentGiven}
+                onChange={handleConsentChange}
+              />
+              <label htmlFor="consentCheckbox">
+                I consent to Axiom Global collecting and using my documents for recruitment, background checks, and onboarding. I understand my information may be shared with clients or verification partners as needed for these purposes.
+              </label>
             </div>
+
+            <button type="submit" className={formStyles.submitButton} disabled={!isSubmitEnabled}>
+              Submit
+            </button>
           </form>
         </div>
       )}
