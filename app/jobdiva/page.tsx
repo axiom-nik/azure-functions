@@ -6,8 +6,8 @@ import styles from '../page.module.css';
 // Available intervals in minutes
 const INTERVAL_OPTIONS = [
   { value: 60, label: '1 minute' },
+  { value: 300, label: '5 minutes' },
   { value: 1800, label: '30 minutes' },
-  
 ];
 
 interface ApiMetadata {
@@ -37,6 +37,7 @@ export default function JobDivaAPI() {
 
   const fetchJobDivaData = async () => {
     try {
+      console.log('API call initiated');
       setIsLoading(true);
       setError(null);
       setUploadStatus('idle');
@@ -49,6 +50,8 @@ export default function JobDivaAPI() {
         body: JSON.stringify({ region: 'USA' }),
       });
 
+      console.log('API call completed');
+
       // Get timestamps from headers
       const headerTimestamp = response.headers.get('X-Fetch-Time-Formatted');
       const data = await response.json();
@@ -60,6 +63,12 @@ export default function JobDivaAPI() {
       
       // Reset countdown after successful fetch
       setNextFetchIn(selectedInterval);
+
+      // Trigger the upload to SharePoint after API call
+      if (excelInfo?.buffer && !isUploading) {
+        console.log('Triggering upload to SharePoint');
+        await handleUploadToSharePoint();
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -174,6 +183,10 @@ export default function JobDivaAPI() {
       if (countdownIntervalId) clearInterval(countdownIntervalId);
     };
   }, [isRunning, selectedInterval]); // Effect runs when isRunning or selectedInterval changes
+
+  useEffect(() => {
+    document.title = 'L2 Selected API';
+  }, []);
 
   // Format the countdown time
   const formatCountdown = (seconds: number): string => {
