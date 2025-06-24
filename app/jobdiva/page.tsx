@@ -60,15 +60,15 @@ export default function JobDivaAPI() {
       setLastFetchTime(headerTimestamp || new Date().toLocaleString());
       setMetadata(data.metadata);
       setExcelInfo(data.excel);
+
+      // Create and upload Excel immediately
+      if (data.excel?.buffer && !isUploading) {
+        console.log('Creating and uploading Excel to SharePoint');
+        await handleUploadToSharePoint();
+      }
       
       // Reset countdown after successful fetch
       setNextFetchIn(selectedInterval);
-
-      // Trigger the upload to SharePoint after API call
-      if (excelInfo?.buffer && !isUploading) {
-        console.log('Triggering upload to SharePoint');
-        await handleUploadToSharePoint();
-      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
@@ -163,8 +163,15 @@ export default function JobDivaAPI() {
       // Fetch data immediately when starting
       fetchJobDivaData();
 
-      // Set up timer to fetch every interval
-      fetchIntervalId = setInterval(fetchJobDivaData, selectedInterval * 1000);
+      // Set up timer to fetch and upload every interval
+      fetchIntervalId = setInterval(async () => {
+        console.log('Timer triggered');
+        await fetchJobDivaData();
+        if (excelInfo?.buffer && !isUploading) {
+          console.log('Attempting to upload to SharePoint');
+          await handleUploadToSharePoint();
+        }
+      }, selectedInterval * 1000);
 
       // Set up countdown timer that updates every second
       countdownIntervalId = setInterval(() => {
