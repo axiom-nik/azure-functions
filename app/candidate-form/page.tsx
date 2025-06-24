@@ -35,11 +35,11 @@ export default function DocumentsSubmissionPage() {
     document.title = 'Axiom Background Check';
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFiles: React.Dispatch<React.SetStateAction<File[]>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string) => {
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFiles: React.Dispatch<React.SetStateAction<File[]>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string, limit: number) => {
     if (e.target.files && e.target.files.length > 0) {
       const files = Array.from(e.target.files);
-      setFiles(prevFiles => [...prevFiles, ...files]);
-      setEditedFileName(prevNames => [...prevNames.split(', '), ...files.map(file => file.name)].join(', '));
+      setFiles(prevFiles => (limit === 1 ? files : [...prevFiles, ...files])); // Replace files if limit is 1
+      setEditedFileName(files.map(file => file.name).join(', '));
     }
   };
 
@@ -146,9 +146,10 @@ export default function DocumentsSubmissionPage() {
     tooltipText?: string;
     editedFileName: string;
     setEditedFileName: React.Dispatch<React.SetStateAction<string>>;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   }
 
-  const FileUploadInput: React.FC<FileUploadInputProps> = ({ label, id, file, setFile, limit, allowedTypes, tooltipText, editedFileName, setEditedFileName }) => (
+  const FileUploadInput: React.FC<FileUploadInputProps> = ({ label, id, file, setFile, limit, allowedTypes, tooltipText, editedFileName, setEditedFileName, onChange }) => (
     <div className={formStyles.formGroup} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <div style={{ flex: 1 }}>
         <label htmlFor={id} className={formStyles.label}>
@@ -164,10 +165,10 @@ export default function DocumentsSubmissionPage() {
         <input
           type="file"
           id={id}
-          onChange={(e) => handleFileChange(e, setFile, setEditedFileName, id)}
+          onChange={onChange}
           style={{ display: 'none' }}
           accept={allowedTypes.join(', ')}
-          multiple={limit > 1}
+          multiple={limit > 1 ? true : false}
         />
         <div
           className={formStyles.uploadBox}
@@ -271,9 +272,11 @@ export default function DocumentsSubmissionPage() {
               file={resumeFiles}
               setFile={setResumeFiles}
               limit={1}
-              allowedTypes={[".pdf", ".doc", ".docx"]}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png"]}
+              tooltipText="Upload your resume"
               editedFileName={editedResumeFileName}
               setEditedFileName={setEditedResumeFileName}
+              onChange={(e) => handleFileChange(e, setResumeFiles, setEditedResumeFileName, 'resume', 1)}
             />
 
             <FileUploadInput
@@ -282,9 +285,11 @@ export default function DocumentsSubmissionPage() {
               file={uanCardFiles}
               setFile={setUanCardFiles}
               limit={1}
-              allowedTypes={[".pdf"]}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png"]}
+              tooltipText="Upload your UAN Card"
               editedFileName={editedUanCardFileName}
               setEditedFileName={setEditedUanCardFileName}
+              onChange={(e) => handleFileChange(e, setUanCardFiles, setEditedUanCardFileName, 'uanCard', 1)}
             />
 
             <FileUploadInput
@@ -293,9 +298,11 @@ export default function DocumentsSubmissionPage() {
               file={epfoServiceHistoryFiles}
               setFile={setEpfoServiceHistoryFiles}
               limit={20}
-              allowedTypes={[".pdf"]}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png"]}
+              tooltipText="Upload your EPFO Service History"
               editedFileName={editedEpfoServiceHistoryFileName}
               setEditedFileName={setEditedEpfoServiceHistoryFileName}
+              onChange={(e) => handleFileChange(e, setEpfoServiceHistoryFiles, setEditedEpfoServiceHistoryFileName, 'epfoServiceHistory', 20)}
             />
 
             <FileUploadInput
@@ -304,9 +311,11 @@ export default function DocumentsSubmissionPage() {
               file={epfoMemberPassbookFiles}
               setFile={setEpfoMemberPassbookFiles}
               limit={20}
-              allowedTypes={[".pdf"]}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png"]}
+              tooltipText="Upload your EPFO Member Passbook"
               editedFileName={editedEpfoMemberPassbookFileName}
               setEditedFileName={setEditedEpfoMemberPassbookFileName}
+              onChange={(e) => handleFileChange(e, setEpfoMemberPassbookFiles, setEditedEpfoMemberPassbookFileName, 'epfoMemberPassbook', 20)}
             />
 
             <div className={formStyles.consentContainer}>
