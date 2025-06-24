@@ -182,8 +182,10 @@ export default function DocumentsSubmissionPage() {
           onDragOver={(e) => e.preventDefault()}
         >
           <div className={formStyles.uploadIcon}>⬆</div>
-          <div className={formStyles.uploadText}>Upload file</div>
-          {file && file.length > 0 && <div className={formStyles.fileInfo}>Selected: {file.map((f: File) => f.name).join(', ')}</div>}
+          <div className={formStyles.uploadText}>{file && file.length > 0 && limit > 1 ? '+ Add More Files' : 'Upload file'}</div>
+          {file && file.length > 0 && (
+            <div className={formStyles.fileInfo}>Selected: {file.map((f: File) => f.name).join(', ')}</div>
+          )}
           <div className={formStyles.fileInfo}>
             File number limit: {limit} Single file size limit: 10MB
           </div>
