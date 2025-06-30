@@ -147,12 +147,12 @@ export class JobDivaService {
   async fetchInitialData() {
     const today = new Date();
     const startDate = new Date(today);
-    startDate.setDate(today.getDate() - 2);
+    startDate.setDate(today.getDate() - 6);
 
     const toDate = `${today.getMonth() + 1}/${today.getDate()}/${today.getFullYear()}`;
     const fromDate = `${startDate.getMonth() + 1}/${startDate.getDate()}/${startDate.getFullYear()}`;
 
-    return this.makeRequest(`/apiv2/bi/NewUpdatedSubmittalInterviewHireActivityRecords?fromDate=${fromDate}&toDate=${toDate}&userFieldsName=L1 Interview Status`, 'GET');
+    return this.makeRequest(`/apiv2/bi/NewUpdatedSubmittalInterviewHireActivityRecords?fromDate=${fromDate}&toDate=${toDate}&userFieldsName=L1 Interview Status,L2 Interview Status`, 'GET');
   }
 
   async fetchJobDetail(jobId: string) {
