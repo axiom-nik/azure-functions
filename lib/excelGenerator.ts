@@ -43,11 +43,20 @@ export async function generateExcel(data: any): Promise<ExcelResult> {
     // Convert data to array if it's wrapped in a response object
     const records = Array.isArray(data) ? data : (data.data || []);
     
-    // Filter for Selected for L2 status and Capgemini India
-    const filteredRecords = records.filter((record: any) => 
-      record['L1 Interview Status'] === 'Selected for L2' &&
-      record['COMPANYNAME'] === 'Capgemini India'
-    );
+    // Calculate the date 5 days prior to the toDate
+    const toDate = new Date(); // Assuming toDate is today
+    const fiveDaysPrior = new Date(toDate);
+    fiveDaysPrior.setDate(toDate.getDate() - 5);
+
+    // Filter for Selected for L2 status, Capgemini India, and INTERVIEWDATE condition
+    const filteredRecords = records.filter((record: any) => {
+      const interviewDate = new Date(record['INTERVIEWDATE']);
+      return (
+        record['L1 Interview Status'] === 'Selected for L2' &&
+        record['COMPANYNAME'] === 'Capgemini India' &&
+        interviewDate >= fiveDaysPrior
+      );
+    });
 
     // Select only the required fields that exist in the records
     const existingFields = REQUIRED_FIELDS.filter(field => 
