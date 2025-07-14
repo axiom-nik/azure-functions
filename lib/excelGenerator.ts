@@ -33,7 +33,8 @@ const REQUIRED_FIELDS = [
   'SUBMITTALDATE',
   'INTERVIEWDATE',
   'INTERVIEW_TIMEZONEID',
-  'L1 Interview Status'
+  'L1 Interview Status',
+  'L1 attended'
 ];
 
 export async function generateExcel(data: any): Promise<ExcelResult> {
@@ -50,7 +51,7 @@ export async function generateExcel(data: any): Promise<ExcelResult> {
 
     // Filter for Selected for L2 status, Capgemini India, and L1_ATTENDED_DATE condition
     const filteredRecords = records.filter((record: any) => {
-      const l1AttendedDate = record['L1 Attended Date'] ? new Date(record['L1 Attended Date']) : null;
+      const l1AttendedDate = record['L1 attended'] ? new Date(record['L1 attended']) : null;
       return (
         record['L1 Interview Status'] === 'Selected for L2' &&
         record['COMPANYNAME'] === 'Capgemini India' &&
