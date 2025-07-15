@@ -6,8 +6,8 @@ import styles from '../page.module.css';
 // Available intervals in minutes
 const INTERVAL_OPTIONS = [
   { value: 60, label: '1 minute' },
+  { value: 300, label: '5 minutes' },
   { value: 1800, label: '30 minutes' },
-  { value: 3600, label: '60 minutes' },
 ];
 
 interface ApiMetadata {
@@ -37,6 +37,7 @@ export default function JobDivaAPI() {
 
   const fetchJobDivaData = async () => {
     try {
+      console.log('API call initiated');
       setIsLoading(true);
       setError(null);
       setUploadStatus('idle');
@@ -49,6 +50,8 @@ export default function JobDivaAPI() {
         body: JSON.stringify({ region: 'USA' }),
       });
 
+      console.log('API call completed');
+
       // Get timestamps from headers
       const headerTimestamp = response.headers.get('X-Fetch-Time-Formatted');
       const data = await response.json();
@@ -57,6 +60,12 @@ export default function JobDivaAPI() {
       setLastFetchTime(headerTimestamp || new Date().toLocaleString());
       setMetadata(data.metadata);
       setExcelInfo(data.excel);
+
+      // Create and upload Excel immediately
+      if (data.excel?.buffer && !isUploading) {
+        console.log('Creating and uploading Excel to SharePoint');
+        await handleUploadToSharePoint();
+      }
       
       // Reset countdown after successful fetch
       setNextFetchIn(selectedInterval);
@@ -104,6 +113,48 @@ export default function JobDivaAPI() {
     }
   };
 
+  const handleUploadJsonToSharePoint = async () => {
+    if (!apiResponse) {
+      setError('No API response available to upload');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setError(null);
+      setUploadStatus('idle');
+
+      // Convert JSON string to Uint8Array
+      const uint8Array = new TextEncoder().encode(apiResponse);
+      // Convert Uint8Array to Base64
+      const base64Data = Buffer.from(uint8Array).toString('base64');
+
+      const response = await fetch('/api/sharepoint/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          base64Data,
+          filename: 'L2Selected.json',
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload to SharePoint');
+      }
+
+      setUploadStatus('success');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload to SharePoint');
+      setUploadStatus('failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   useEffect(() => {
     let fetchIntervalId: NodeJS.Timeout;
     let countdownIntervalId: NodeJS.Timeout;
@@ -112,8 +163,15 @@ export default function JobDivaAPI() {
       // Fetch data immediately when starting
       fetchJobDivaData();
 
-      // Set up timer to fetch every interval
-      fetchIntervalId = setInterval(fetchJobDivaData, selectedInterval * 1000);
+      // Set up timer to fetch and upload every interval
+      fetchIntervalId = setInterval(async () => {
+        console.log('Timer triggered');
+        await fetchJobDivaData();
+        if (excelInfo?.buffer && !isUploading) {
+          console.log('Attempting to upload to SharePoint');
+          await handleUploadToSharePoint();
+        }
+      }, selectedInterval * 1000);
 
       // Set up countdown timer that updates every second
       countdownIntervalId = setInterval(() => {
@@ -132,6 +190,10 @@ export default function JobDivaAPI() {
       if (countdownIntervalId) clearInterval(countdownIntervalId);
     };
   }, [isRunning, selectedInterval]); // Effect runs when isRunning or selectedInterval changes
+
+  useEffect(() => {
+    document.title = 'L2 Selected API';
+  }, []);
 
   // Format the countdown time
   const formatCountdown = (seconds: number): string => {
@@ -243,7 +305,7 @@ export default function JobDivaAPI() {
 
       {apiResponse && (
         <div className={styles.responseContainer}>
-          <h2>API Response:</h2>
+          <h2>Filtered JSON Data:</h2>
           <pre className={styles.response}>
             {apiResponse}
           </pre>

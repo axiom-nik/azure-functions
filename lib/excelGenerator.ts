@@ -33,7 +33,8 @@ const REQUIRED_FIELDS = [
   'SUBMITTALDATE',
   'INTERVIEWDATE',
   'INTERVIEW_TIMEZONEID',
-  'L1 Interview Status'
+  'L1 Interview Status',
+  'L1 attended'
 ];
 
 export async function generateExcel(data: any): Promise<ExcelResult> {
@@ -43,10 +44,20 @@ export async function generateExcel(data: any): Promise<ExcelResult> {
     // Convert data to array if it's wrapped in a response object
     const records = Array.isArray(data) ? data : (data.data || []);
     
-    // Filter for Selected for L2 status
-    const filteredRecords = records.filter((record: any) => 
-      record['L1 Interview Status'] === 'Selected for L2'
-    );
+    // Calculate the date 5 days prior to the toDate
+    const toDate = new Date(); // Assuming toDate is today
+    const fiveDaysPrior = new Date(toDate);
+    fiveDaysPrior.setDate(toDate.getDate() - 5);
+
+    // Filter for Selected for L2 status, Capgemini India, and L1_ATTENDED_DATE condition
+    const filteredRecords = records.filter((record: any) => {
+      const l1AttendedDate = record['L1 attended'] ? new Date(record['L1 attended']) : null;
+      return (
+        record['L1 Interview Status'] === 'Selected for L2' &&
+        record['COMPANYNAME'] === 'Capgemini India' &&
+        (l1AttendedDate === null || l1AttendedDate >= fiveDaysPrior)
+      );
+    });
 
     // Select only the required fields that exist in the records
     const existingFields = REQUIRED_FIELDS.filter(field => 
@@ -73,6 +84,10 @@ export async function generateExcel(data: any): Promise<ExcelResult> {
     const excelBuffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
     
     console.log('Excel file generated successfully in memory');
+    
+    // Create JSON data with filtered records in memory
+    const jsonBuffer = Buffer.from(JSON.stringify(filteredRecords, null, 2));
+    console.log('JSON data created in memory');
     
     return {
       success: true,

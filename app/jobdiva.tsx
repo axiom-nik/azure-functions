@@ -6,8 +6,8 @@ import styles from './page.module.css';
 // Available intervals in minutes
 const INTERVAL_OPTIONS = [
   { value: 60, label: '1 minute' },
-  { value: 1800, label: '30 minutes' },
-  { value: 3600, label: '60 minutes' },
+  { value: 1800, label: '30 minutes' }
+ 
 ];
 
 interface ApiMetadata {
@@ -98,6 +98,43 @@ export default function JobDivaAPI() {
       setUploadStatus('success');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to upload to SharePoint');
+      setUploadStatus('failed');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleUploadJsonToSharePoint = async () => {
+    if (!apiResponse) {
+      setError('No JSON data available to upload');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      setError(null);
+      setUploadStatus('idle');
+
+      const response = await fetch('/api/sharepoint/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          base64Data: btoa(apiResponse), // Convert JSON string to base64
+          filename: 'L2Selected.json',
+        }),
+      });
+
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to upload JSON to SharePoint');
+      }
+
+      setUploadStatus('success');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload JSON to SharePoint');
       setUploadStatus('failed');
     } finally {
       setIsUploading(false);
@@ -203,6 +240,13 @@ export default function JobDivaAPI() {
             className={`${styles.button} ${styles.uploadButton}`}
           >
             {isUploading ? 'Uploading...' : 'Upload to SharePoint'}
+          </button>
+          <button
+            onClick={handleUploadJsonToSharePoint}
+            disabled={!apiResponse || isUploading}
+            className={`${styles.button} ${styles.uploadButton}`}
+          >
+            {isUploading ? 'Uploading JSON...' : 'Upload JSON to SharePoint'}
           </button>
         </div>
         <div className={styles.status}>

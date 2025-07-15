@@ -9,16 +9,17 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function DocumentsSubmissionPage() {
   const [candidateName, setCandidateName] = useState<string>('');
   const [candidateNameForDisplay, setCandidateNameForDisplay] = useState<string>('');
-  const [resumeFile, setResumeFile] = useState<File | null>(null);
-  const [uanCardFile, setUanCardFile] = useState<File | null>(null);
-  const [epfoServiceHistoryFile, setEpfoServiceHistoryFile] = useState<File | null>(null);
-  const [epfoMemberPassbookFile, setEpfoMemberPassbookFile] = useState<File | null>(null);
+  const [resumeFiles, setResumeFiles] = useState<File[]>([]);
+  const [uanCardFiles, setUanCardFiles] = useState<File[]>([]);
+  const [epfoServiceHistoryFiles, setEpfoServiceHistoryFiles] = useState<File[]>([]);
+  const [epfoMemberPassbookFiles, setEpfoMemberPassbookFiles] = useState<File[]>([]);
   const [editedResumeFileName, setEditedResumeFileName] = useState<string>('');
   const [editedUanCardFileName, setEditedUanCardFileName] = useState<string>('');
   const [editedEpfoServiceHistoryFileName, setEditedEpfoServiceHistoryFileName] = useState<string>('');
   const [editedEpfoMemberPassbookFileName, setEditedEpfoMemberPassbookFileName] = useState<string>('');
   const [uploadComplete, setUploadComplete] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<boolean>(false);
+  const [consentGiven, setConsentGiven] = useState(false);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -30,15 +31,36 @@ export default function DocumentsSubmissionPage() {
     }
   }, []);
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFile: React.Dispatch<React.SetStateAction<File | null>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string) => {
+  useEffect(() => {
+    document.title = 'Axiom Background Check';
+  }, []);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, setFiles: React.Dispatch<React.SetStateAction<File[]>>, setEditedFileName: React.Dispatch<React.SetStateAction<string>>, documentType: string, limit: number) => {
     if (e.target.files && e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setFile(file);
-      setEditedFileName(file.name);
-    } else {
-      setFile(null);
-      setEditedFileName('');
+      const files = Array.from(e.target.files);
+      setFiles(prevFiles => (limit === 1 ? files : [...prevFiles, ...files])); // Replace files if limit is 1
+      setEditedFileName(files.map(file => file.name).join(', '));
     }
+  };
+
+  const generateTimestamp = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    return `${year}${month}${day}${hours}${minutes}${seconds}`;
+  };
+
+  const renameFile = (file: File | null, documentType: string, index: number): File | null => {
+    if (!file) return null;
+    const fileExtension = file.name.split('.').pop();
+    const timestamp = generateTimestamp();
+    const uniqueId = `${timestamp}_${index}`; // Add index to ensure uniqueness
+    const newFileName = `${candidateName}_${documentType}_${uniqueId}.${fileExtension}`;
+    return new File([file], newFileName, { type: file.type });
   };
 
   const uploadFileToSharePoint = async (file: File | null, documentType: string) => {
@@ -87,95 +109,113 @@ export default function DocumentsSubmissionPage() {
     e.preventDefault();
     setUploadError(false); // Reset error state
 
-    const renameFile = (file: File | null, documentType: string): File | null => {
-      if (!file) return null;
-      const fileExtension = file.name.split('.').pop();
-      const newFileName = `${candidateName}_${documentType}.${fileExtension}`;
-      return new File([file], newFileName, { type: file.type });
-    };
+    const renamedResumeFiles = resumeFiles.map((file, index) => renameFile(file, 'resume', index));
+    const renamedUanCardFiles = uanCardFiles.map((file, index) => renameFile(file, 'uanCard', index));
+    const renamedEpfoServiceHistoryFiles = epfoServiceHistoryFiles.map((file, index) => renameFile(file, 'epfoServiceHistory', index));
+    const renamedEpfoMemberPassbookFiles = epfoMemberPassbookFiles.map((file, index) => renameFile(file, 'epfoMemberPassbook', index));
 
-    const renamedResumeFile = renameFile(resumeFile, 'resume');
-    const renamedUanCardFile = renameFile(uanCardFile, 'uanCard');
-    const renamedEpfoServiceHistoryFile = renameFile(epfoServiceHistoryFile, 'epfoServiceHistory');
-    const renamedEpfoMemberPassbookFile = renameFile(epfoMemberPassbookFile, 'epfoMemberPassbook');
-
-    await uploadFileToSharePoint(renamedResumeFile, 'Resume');
-    await uploadFileToSharePoint(renamedUanCardFile, 'UAN Card');
-    await uploadFileToSharePoint(renamedEpfoServiceHistoryFile, 'EPFO Service History');
-    await uploadFileToSharePoint(renamedEpfoMemberPassbookFile, 'EPFO Member Passbook');
+    for (const file of renamedResumeFiles) {
+      await uploadFileToSharePoint(file, 'Resume');
+    }
+    for (const file of renamedUanCardFiles) {
+      await uploadFileToSharePoint(file, 'UAN Card');
+    }
+    for (const file of renamedEpfoServiceHistoryFiles) {
+      await uploadFileToSharePoint(file, 'EPFO Service History');
+    }
+    for (const file of renamedEpfoMemberPassbookFiles) {
+      await uploadFileToSharePoint(file, 'EPFO Member Passbook');
+    }
 
     if (!uploadError) {
       setTimeout(() => setUploadComplete(true), 10000);
     }
   };
 
+  const handleConsentChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setConsentGiven(event.target.checked);
+  };
+
   interface FileUploadInputProps {
     label: string;
     id: string;
-    file: File | null;
-    setFile: React.Dispatch<React.SetStateAction<File | null>>;
+    file: File[];
+    setFile: React.Dispatch<React.SetStateAction<File[]>>;
     limit: number;
     allowedTypes: string[];
     tooltipText?: string;
     editedFileName: string;
     setEditedFileName: React.Dispatch<React.SetStateAction<string>>;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   }
 
-  const FileUploadInput: React.FC<FileUploadInputProps> = ({ label, id, file, setFile, limit, allowedTypes, tooltipText, editedFileName, setEditedFileName }) => (
-  <div className={formStyles.formGroup} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-    <div style={{ flex: 1 }}>
-      <label htmlFor={id} className={formStyles.label}>
-        {label}
-        <span className={formStyles.requiredStar}>*</span>
-        {tooltipText && (
-          <div className={formStyles.tooltipContainer}>
-            <span className={formStyles.tooltipIcon}>ⓘ</span>
-            <span className={formStyles.tooltipText}>{tooltipText}</span>
+  const FileUploadInput: React.FC<FileUploadInputProps> = ({ label, id, file, setFile, limit, allowedTypes, tooltipText, editedFileName, setEditedFileName, onChange }) => (
+    <div className={formStyles.formGroup} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ flex: 1 }}>
+        <label htmlFor={id} className={formStyles.label}>
+          {label}
+          <span className={formStyles.requiredStar}>*</span>
+          {tooltipText && (
+            <div className={formStyles.tooltipContainer}>
+              <span className={formStyles.tooltipIcon}>ⓘ</span>
+              <span className={formStyles.tooltipText}>{tooltipText}</span>
+            </div>
+          )}
+        </label>
+        <input
+          type="file"
+          id={id}
+          onChange={onChange}
+          style={{ display: 'none' }}
+          accept={allowedTypes.join(', ')}
+          multiple={limit > 1 ? true : false}
+        />
+        <div
+          className={formStyles.uploadBox}
+          onClick={() => document.getElementById(id)!.click()}
+          onDrop={(e) => {
+            e.preventDefault();
+            const files = Array.from(e.dataTransfer.files);
+            setFile(prevFiles => [...prevFiles, ...files]);
+            setEditedFileName(prevNames => [...prevNames.split(', '), ...files.map(file => file.name)].join(', '));
+          }}
+          onDragOver={(e) => e.preventDefault()}
+        >
+          <div className={formStyles.uploadIcon}>⬆</div>
+          <div className={formStyles.uploadText}>{file && file.length > 0 && limit > 1 ? '+ Add More Files' : 'Upload file'}</div>
+          {file && file.length > 0 && (
+            <div className={formStyles.fileInfo}>Selected: {file.map((f: File) => f.name).join(', ')}</div>
+          )}
+          <div className={formStyles.fileInfo}>
+            File number limit: {limit} Single file size limit: 10MB
+          </div>
+        </div>
+        {file && file.length > 0 && (
+          <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+            <input
+              type="text"
+              value={file.map((f: File) => f.name).join(', ')}
+              readOnly
+              className={formStyles.input}
+              style={{ marginRight: '0.5rem', width: '100%' }}
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setFile([]);
+                setEditedFileName('');
+              }}
+              className={formStyles.deleteButton}
+            >
+              Delete
+            </button>
           </div>
         )}
-      </label>
-      <input
-        type="file"
-        id={id}
-        onChange={(e) => handleFileChange(e, setFile, setEditedFileName, id)}
-        style={{ display: 'none' }}
-        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png" // Restrict to PDF, DOC/DOCX, JPG/PNG
-        multiple={limit > 1}
-      />
-      <div className={formStyles.uploadBox} onClick={() => document.getElementById(id)!.click()}>
-        <div className={formStyles.uploadIcon}>⬆</div>
-        <div className={formStyles.uploadText}>Upload file</div>
-        {file && <div className={formStyles.fileInfo}>Selected: {file.name}</div>}
-        <div className={formStyles.fileInfo}>
-          File number limit: {limit} Single file size limit: 10MB
-        </div>
       </div>
-      {file && (
-        <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.5rem' }}>
-          <input
-            type="text"
-            value={file.name}
-            readOnly
-            className={formStyles.input}
-            style={{ marginRight: '0.5rem' }}
-          />
-          <button
-            type="button"
-            onClick={() => {
-              setFile(null);
-              setEditedFileName('');
-            }}
-            className={formStyles.deleteButton}
-          >
-            Delete
-          </button>
-        </div>
-      )}
     </div>
-  </div>
-);
+  );
 
-  const isSubmitEnabled = resumeFile && uanCardFile && epfoServiceHistoryFile && epfoMemberPassbookFile;
+  const isSubmitEnabled = resumeFiles.length > 0 && uanCardFiles.length > 0 && epfoServiceHistoryFiles.length > 0 && epfoMemberPassbookFiles.length > 0 && consentGiven;
 
   return (
     <div className={formStyles.container}>
@@ -209,7 +249,7 @@ export default function DocumentsSubmissionPage() {
             <li>All uploads must be in PDF, DOC/DOCX, or image (JPG/PNG) formats</li>
           </ul>
           <p className={formStyles.instructions}>All files shared here are transmitted over a secure, encrypted channel and stored safely in compliance with our data protection policies.</p>
-          <p className={formStyles.instructions}>If you face any technical issues, please reach out to our UAN team led by Brain Wells at <a href="mailto:Brian.Wells@axiomglobal.com">Brian.Wells@axiomglobal.com</a>.</p>
+          <p className={formStyles.instructions}>If you face any technical issues, please reach out to our UAN team led by Brian Wells at <a href="mailto:Brian.Wells@axiomglobal.com">Brian.Wells@axiomglobal.com</a>.</p>
           <p className={formStyles.instructions}>We're excited to have you moving up in the hiring process.</p>
 
           {uploadError && (
@@ -218,69 +258,83 @@ export default function DocumentsSubmissionPage() {
             </p>
           )}
 
-          <form onSubmit={handleSubmitAll}>
+          <form onSubmit={handleSubmitAll} className={formStyles.form}>
+            <div className={formStyles.logoContainer} style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <img src="/axiom_logo_01.png" alt="Axiom Global Technologies Logo" className={formStyles.logo} style={{ width: '300px' }} />
+            </div>
+            <h1 className={formStyles.title}>Document Submission</h1>
+            <div className={formStyles.formGroup}>
+              <label className={formStyles.label}>Candidate Name:</label>
+              <span className={formStyles.candidateName}>{candidateNameForDisplay}</span>
+            </div>
+
             <FileUploadInput
               label="Resume"
               id="resume"
-              file={resumeFile}
-              setFile={setResumeFile}
+              file={resumeFiles}
+              setFile={setResumeFiles}
               limit={1}
-              allowedTypes={['Word', 'PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png"]}
+              tooltipText="Upload your resume"
               editedFileName={editedResumeFileName}
               setEditedFileName={setEditedResumeFileName}
+              onChange={(e) => handleFileChange(e, setResumeFiles, setEditedResumeFileName, 'resume', 1)}
             />
 
             <FileUploadInput
               label="UAN Card"
               id="uanCard"
-              file={uanCardFile}
-              setFile={setUanCardFile}
+              file={uanCardFiles}
+              setFile={setUanCardFiles}
               limit={1}
-              allowedTypes={['PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png"]}
+              tooltipText="Upload your UAN Card"
               editedFileName={editedUanCardFileName}
               setEditedFileName={setEditedUanCardFileName}
+              onChange={(e) => handleFileChange(e, setUanCardFiles, setEditedUanCardFileName, 'uanCard', 1)}
             />
 
             <FileUploadInput
               label="EPFO Service History"
               id="epfoServiceHistory"
-              file={epfoServiceHistoryFile}
-              setFile={setEpfoServiceHistoryFile}
-              limit={10}
-              allowedTypes={['PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
+              file={epfoServiceHistoryFiles}
+              setFile={setEpfoServiceHistoryFiles}
+              limit={20}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png"]}
+              tooltipText="Upload your EPFO Service History"
               editedFileName={editedEpfoServiceHistoryFileName}
               setEditedFileName={setEditedEpfoServiceHistoryFileName}
+              onChange={(e) => handleFileChange(e, setEpfoServiceHistoryFiles, setEditedEpfoServiceHistoryFileName, 'epfoServiceHistory', 20)}
             />
 
             <FileUploadInput
               label="EPFO Member Passbook"
               id="epfoMemberPassbook"
-              file={epfoMemberPassbookFile}
-              setFile={setEpfoMemberPassbookFile}
-              limit={1}
-              allowedTypes={['PDF']}
-              tooltipText="This question is not anonymous; the owner will see your name."
+              file={epfoMemberPassbookFiles}
+              setFile={setEpfoMemberPassbookFiles}
+              limit={20}
+              allowedTypes={[".pdf", ".doc", ".docx", ".jpg", ".png"]}
+              tooltipText="Upload your EPFO Member Passbook"
               editedFileName={editedEpfoMemberPassbookFileName}
               setEditedFileName={setEditedEpfoMemberPassbookFileName}
+              onChange={(e) => handleFileChange(e, setEpfoMemberPassbookFiles, setEditedEpfoMemberPassbookFileName, 'epfoMemberPassbook', 20)}
             />
 
-            <div style={{ display: 'flex', alignItems: 'center', marginTop: '1rem' }}>
-              <button
-                type="submit"
-                className={formStyles.submitButton}
-                disabled={!isSubmitEnabled}
-              >
-                Submit
-              </button>
-              {!isSubmitEnabled && (
-                <p className={formStyles.comment} style={{ marginLeft: '1rem' }}>
-                  All four documents need to be uploaded together.
-                </p>
-              )}
+            <div className={formStyles.consentContainer}>
+              <input
+                type="checkbox"
+                id="consentCheckbox"
+                checked={consentGiven}
+                onChange={handleConsentChange}
+              />
+              <label htmlFor="consentCheckbox">
+                I consent to Axiom Global collecting and using my documents for recruitment, background checks, and onboarding. I understand my information may be shared with clients or verification partners as needed for these purposes.
+              </label>
             </div>
+
+            <button type="submit" className={formStyles.submitButton} disabled={!isSubmitEnabled}>
+              Submit
+            </button>
           </form>
         </div>
       )}
