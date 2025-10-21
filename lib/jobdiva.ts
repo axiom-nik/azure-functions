@@ -25,7 +25,7 @@ export class JobDivaService {
     // Load environment variables directly
     const envVars = {
       JOBDIVA_USERNAME_INDIA: process.env.JOBDIVA_USERNAME_INDIA,
-      JOBDIVA_PASSWORD_INDIA: 'JD@pi@cce$$9', // Hardcoded for testing
+      JOBDIVA_PASSWORD_INDIA: process.env.JOBDIVA_PASSWORD_INDIA, // Hardcoded for testing
       JOBDIVA_CLIENT_ID_INDIA: process.env.JOBDIVA_CLIENT_ID_INDIA,
     };
     
