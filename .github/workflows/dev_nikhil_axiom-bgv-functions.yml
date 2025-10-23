@@ -33,10 +33,16 @@ jobs:
         shell: pwsh
         run: |
           pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
-          npm install
+          npm install --omit=dev
           npm run build --if-present
           npm run test --if-present
           popd
+
+      - name: 'Create deployment package'
+        shell: pwsh
+        run: |
+          if (Test-Path functionapp.zip) { Remove-Item functionapp.zip -Force }
+          Compress-Archive -Path "${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}\*" -DestinationPath "functionapp.zip"
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -51,5 +57,5 @@ jobs:
         with:
           app-name: 'axiom-bgv-functions'
           slot-name: 'Production'
-          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          package: functionapp.zip
 
